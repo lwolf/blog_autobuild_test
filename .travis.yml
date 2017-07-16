@@ -4,14 +4,10 @@ addons:
       - python-pygments
 
 install:
-  - pwd
-  - ls
-  - rm -rf public || exit 0
 
 script:
-  - pwd
-  - ls
-  - bin/hugo --theme=hugo-future-imperfect
+  - rm -rf public || exit 0
+  - bin/hugo-linux64 --theme=hugo-future-imperfect
 
 deploy:
   provider: pages
