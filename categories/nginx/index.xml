@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Nginx on lwolfs blog</title>
+    <link>http://blog.lwolf.org/categories/nginx/</link>
+    <description>Recent content in Nginx on lwolfs blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 08 Jun 2016 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://blog.lwolf.org/categories/nginx/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Hosting own docker registry with UI and tls</title>
+      <link>http://blog.lwolf.org/post/hosting-own-docker-registry/</link>
+      <pubDate>Wed, 08 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/hosting-own-docker-registry/</guid>
+      <description>First thing you need if you&amp;rsquo;re using Kubernetes - Docker registry. Because its all about containers. So in this post I will show how to deploy your own registry inside Kubernetes cluster, with UI and tls, with basic http authentication. I&amp;rsquo;m going to use cluster I deployed in previous post. As short recap - we have Kubernetes cluster with few nodes, and external loadbalancer (ubuntu based machine with nginx)  Get ssl certificates from Let&amp;rsquo;s Encrypt To have proper registry opened to the web, we need to get ssl certificates.</description>
+    </item>
+    
+  </channel>
+</rss>

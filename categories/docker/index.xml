@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Docker on lwolfs blog</title>
+    <link>http://blog.lwolf.org/categories/docker/</link>
+    <description>Recent content in Docker on lwolfs blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 19 Jun 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://blog.lwolf.org/categories/docker/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</title>
+      <link>http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/</link>
+      <pubDate>Mon, 19 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/</guid>
+      <description>This post is one of a series of posts about monitoring of infrastructure and services. Other posts in the series:
+ Intro Deploying Prometheus and Grafana to Kubernetes Creating the first dashboard in Grafana (this article) 10 most useful Grafana dashboards to monitor Kubernetes and services Configuring alerts in Prometheus and Grafana Making sense of logs with ELK(EFK) stack and Sentry Replacing commercial APM monitoring  Having grafana.net/dashboards with dozens of dashboards to choose from is awesome and helps get started with monitoring, but creating your own dashboards from scratch is also very helpful.</description>
+    </item>
+    
+    <item>
+      <title>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</title>
+      <link>http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/</link>
+      <pubDate>Mon, 29 May 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/</guid>
+      <description>This post is one of a series of posts about monitoring of infrastructure and services. Other posts in the series:
+ Intro Deploying Prometheus and Grafana to Kubernetes (this article) Creating the first dashboard in Grafana 10 most useful Grafana dashboards to monitor Kubernetes and services Configuring alerts in Prometheus and Grafana Making sense of logs with ELK(EFK) stack and Sentry Replacing commercial APM monitoring  I’ve been keeping my eye on Prometheus for some time.</description>
+    </item>
+    
+    <item>
+      <title>Going open-source in monitoring, part 0: Intro</title>
+      <link>http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/</link>
+      <pubDate>Fri, 12 May 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/</guid>
+      <description>Intro (this article) Deploy and basic configuration of Prometheus Creating the first dashboard in Grafana 10 most useful Grafana dashboards to monitor Kubernetes and services Configuring alerts in Prometheus and Grafana Making sense of logs with ELK(EFK) stack and Sentry Replacing commercial APM monitoring  Monitoring of the infrastructure is an essential part of any product. But it&amp;rsquo;s not uncommon for companies to postpone monitoring for the later period. Having it in &amp;ldquo;nice-to-have&amp;rdquo; bucket.</description>
+    </item>
+    
+    <item>
+      <title>How to recover data from broken GlusterFS cluster</title>
+      <link>http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/</link>
+      <pubDate>Fri, 31 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/</guid>
+      <description>A few days ago when I tried to install helm chart in my Kubernetes cluster I noticed that all new pods that required storage were in pending state. After a quick check of the logs, I found out that pods were unable to get PVC from GlusterFS. I recently wrote about my experience deploying GlusterFS cluster. This time I will go through recovering data from the broken GlusterFS cluster, and some problems I faced deploying new cluster.</description>
+    </item>
+    
+    <item>
+      <title>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</title>
+      <link>http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/</link>
+      <pubDate>Thu, 30 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/</guid>
+      <description>Since my previous posts[1][2] about CI/CD, a lot have changed. I started using Helm for packaging applications, stopped using docker-in-docker in gitlab-runner.
+Recently, I started working on a few Golang microservices. I decided to try gitlab’s caching and split the job into multiple steps for better feedback in UI.
+Few of the main changes to my .gitlab-ci.yaml file since my previous post:
+ no docker-in-docker using cache for packages instead of a prebuilt image with dependencies splitting everything into multiple steps.</description>
+    </item>
+    
+    <item>
+      <title>How to deploy HA PostgreSQL cluster on Kubernetes</title>
+      <link>http://blog.lwolf.org/post/how-to-deploy-ha-postgressql-cluster-on-kubernetes/</link>
+      <pubDate>Mon, 06 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-deploy-ha-postgressql-cluster-on-kubernetes/</guid>
+      <description>Creating a high available PostgreSQL cluster always was a tricky task. Doing it in the cloud environment is especially difficult. I found at least 3 projects trying to provide HA PostgreSQL solutions for Kubernetes.
+Patroni
+ Patroni is a template for you to create your own customized, high-availability solution using Python and - for maximum accessibility - a distributed configuration store like ZooKeeper, etcd or Consul. Database engineers, DBAs, DevOps engineers, and SREs who are looking to quickly deploy HA PostgreSQL in the datacenter - or anywhere else - will hopefully find it useful.</description>
+    </item>
+    
+    <item>
+      <title>Fully automated GitLab installation on Kubernetes including runner and docker registry</title>
+      <link>http://blog.lwolf.org/post/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry/</link>
+      <pubDate>Mon, 27 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry/</guid>
+      <description>After my previous post - How to easily deploy GitLab to Kubernetes - I’ve got a lot of responses. I helped several people to get GitLab up and running on their clusters. With that manifests it became much easier to deploy GitLab to Kubernetes. It was still few things that were usually misunderstood and misconfigured. You can find out these things only by talking with people who are actually trying to use your work.</description>
+    </item>
+    
+    <item>
+      <title>Two days of pain or how I deployed GlusterFS cluster to Kubernetes</title>
+      <link>http://blog.lwolf.org/post/how-i-deployed-glusterfs-cluster-to-kubernetes/</link>
+      <pubDate>Thu, 09 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-i-deployed-glusterfs-cluster-to-kubernetes/</guid>
+      <description>I spent last two days installing GlusterFS storage on top of my Kubernetes. It took much more time and effort than it should. I faced all kinds of problems, some if which were not obvious and took a lot of googling. So I decided to write this post. Hopefully it will save some time for somebody.
+I was playing with helm. Trying to assemble a complex application with several dependencies from official chart repository.</description>
+    </item>
+    
+    <item>
+      <title>How to build tiny Golang docker images with Gitlab-CI</title>
+      <link>http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/</link>
+      <pubDate>Mon, 06 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/</guid>
+      <description>This post will show how to build Golang docker containers using Gitlab-CI. It&amp;rsquo;s the sequel of my previous posts about building and optimizing docker containers.
+I’ve written a small microservice in Golang, and I needed to configure my GitLab to auto build it. It uses Glide as a package manager for Go.
+My directory tree for this project looks like this:
+ &amp;gt; $ tree ├── Dockerfile ├── build_base.sh ├── glide.</description>
+    </item>
+    
+    <item>
+      <title>How to run Functions in your Kubernetes cluster</title>
+      <link>http://blog.lwolf.org/post/how-to-run-functions-in-your-kubernetes-cluster/</link>
+      <pubDate>Mon, 16 Jan 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-run-functions-in-your-kubernetes-cluster/</guid>
+      <description>Serverless or Function as a Service  What is Serverless/FaaS? Serverless is a new paradigm in computing that enables simplicity, efficiency and scalability for both developers and operators.
+ For a long time, there was only one FaaS implementation available for Kubernetes - Funktion. Which I found a bit complicated and tightly coupled with the fabric8 platform. They claim to support functions in any language, but I found only java and nodejs examples in the repo.</description>
+    </item>
+    
+    <item>
+      <title>How to speed up builds and save time and money</title>
+      <link>http://blog.lwolf.org/post/how-to-speed-up-builds-and-save-time-and-money/</link>
+      <pubDate>Thu, 01 Dec 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-speed-up-builds-and-save-time-and-money/</guid>
+      <description>In one of the previous posts, I described the way I&amp;rsquo;m using GitLab to build and test images. Despite the fact that it&amp;rsquo;s pretty simple configuration and actual tests are run for less than a minute, complete pipeline takes around 20 minutes. Which seems very unreasonable. I spent some time digging out the problem and was able to reduce build time to around 3 minutes.
+Here are few things, that should be considered to optimize pipeline.</description>
+    </item>
+    
+    <item>
+      <title>How to get free DynDNS with DigitalOcean API and Kubernetes ScheduledJobs</title>
+      <link>http://blog.lwolf.org/post/how-to-get-free-dyndns-with-digitalocean-and-kubernetes-scheduled-jobs/</link>
+      <pubDate>Fri, 04 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-get-free-dyndns-with-digitalocean-and-kubernetes-scheduled-jobs/</guid>
+      <description>DynDNS is annoying/expensive I&amp;rsquo;m using different DynDNS services at home for the last few years. It&amp;rsquo;s easy to use, comes preinstalled on most of the routers. The only annoyance is the need to confirm each of your hosts every 30 days And it&amp;rsquo;s fine because you do not pay anything.
+Recently, I wanted to attach proper domain to my home server to be able to access my Kubernetes from the outside.</description>
+    </item>
+    
+    <item>
+      <title>Continuous deployment to Kubernetes from GitLab-CI.</title>
+      <link>http://blog.lwolf.org/post/continuous-deployment-to-kubernetes-from-gitlab-ci/</link>
+      <pubDate>Mon, 10 Oct 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/continuous-deployment-to-kubernetes-from-gitlab-ci/</guid>
+      <description>In my previous posts I described how to deploy GitLab to Kubernetes and configure GitLab-CI to build and test docker containers. In this one, I&amp;rsquo;m going to write about continues deployments. I assume that you already have Kubernetes cluster and application running, and you have some manual way of deploying your application to it. So I will not touch the basics of writing Kubernetes manifests. But I will briefly describe my own scripts and show how I configured GitLab-CI to automate deployment.</description>
+    </item>
+    
+    <item>
+      <title>How to build and test docker images in GitLab CI.</title>
+      <link>http://blog.lwolf.org/post/how-to-build-and-test-docker-images-in-gitlab-ci/</link>
+      <pubDate>Wed, 21 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-build-and-test-docker-images-in-gitlab-ci/</guid>
+      <description>In the previous post I described how to run own GitLab server with CI runner. In this one, I&amp;rsquo;m going to walk through my experience of configuring GitLab-CI for one of my projects. I faced few problems during this process, which I will highlight in this post.
+Some words about the project:
+ Python/Flask backend with PostgreSQL as a database, with the bunch of unittests. React/Reflux in frontend with Webpack for bundling.</description>
+    </item>
+    
+    <item>
+      <title>How to easily deploy GitLab on Kubernetes</title>
+      <link>http://blog.lwolf.org/post/how-to-easily-deploy-gitlab-on-kubernetes/</link>
+      <pubDate>Thu, 08 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-easily-deploy-gitlab-on-kubernetes/</guid>
+      <description>I spent some time recently researching how to build CI/CD pipeline to automate testing and deploying. Since I&amp;rsquo;m developing everything in containers and use Kubernetes to manage it GitLab with its CI runners and recent integrations with k8s seemed like a good option.
+In this post, I will describe the steps needed to get GitLab with GitLab Runner, up and running on top of Kubernetes.
+All manifests used in this post could be found here</description>
+    </item>
+    
+    <item>
+      <title>Bootstrapping CoreOS cluster with Kubernetes in 20 minutes using coreos-baremental and bootkube</title>
+      <link>http://blog.lwolf.org/post/bootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube/</link>
+      <pubDate>Mon, 22 Aug 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/bootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube/</guid>
+      <description>It&amp;rsquo;s 4 months now since I migrated my infrastructure to CoreOS and Kubernetes. Now I can say that this was the right decision. Or, even, the best thing that happened to my servers :).
+Of course, there were some problems during this period, but mostly because of some misconfiguration from my side. Also, there was no single downtime because of infrastructure.
+My original post was very long and compicated. Actually, even I don&amp;rsquo;t want to reproduce all of this stuff ever again.</description>
+    </item>
+    
+    <item>
+      <title>Migrate infrastructure to K8s. Part 2. Basic services.</title>
+      <link>http://blog.lwolf.org/post/migrate-infrastructure-to-kubernetes-part2-basic-services/</link>
+      <pubDate>Mon, 20 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/migrate-infrastructure-to-kubernetes-part2-basic-services/</guid>
+      <description>In previous post I finished description of installation of kubernetes cluster on bare-metal hardware. At this point we should be able to communicate with it using kubectl
+In this post I will go through installation of basic services to use and monitor cluster. For example DNS, heapster and different dashboards. Deploying addon services Kubernetes comes with several very useful addons, available on its github, either in kubernetes or in contrib.</description>
+    </item>
+    
+    <item>
+      <title>Hosting own docker registry with UI and tls</title>
+      <link>http://blog.lwolf.org/post/hosting-own-docker-registry/</link>
+      <pubDate>Wed, 08 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/hosting-own-docker-registry/</guid>
+      <description>First thing you need if you&amp;rsquo;re using Kubernetes - Docker registry. Because its all about containers. So in this post I will show how to deploy your own registry inside Kubernetes cluster, with UI and tls, with basic http authentication. I&amp;rsquo;m going to use cluster I deployed in previous post. As short recap - we have Kubernetes cluster with few nodes, and external loadbalancer (ubuntu based machine with nginx)  Get ssl certificates from Let&amp;rsquo;s Encrypt To have proper registry opened to the web, we need to get ssl certificates.</description>
+    </item>
+    
+    <item>
+      <title>Migrate infrastructure to Kubernetes: Building baremetal cluster</title>
+      <link>http://blog.lwolf.org/post/migrate-infrastructure-to-kubernetes-building-baremetal-cluster/</link>
+      <pubDate>Wed, 08 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/migrate-infrastructure-to-kubernetes-building-baremetal-cluster/</guid>
+      <description>I started trying to switch to Docker about a year ago, but all tools were kind of not-production-ready. With docker-compose it was unreal to scale containers without restart. Deis looked like a black box with a lot of magic. Then Tutum appeared and it was awesome, really, it was the first working solution. So I switched to it. It was fine most of the time, yes it had problems with networking, yes it was annoying to copy-paste all environment variables into each container, but it was in beta, and it was free.</description>
+    </item>
+    
+  </channel>
+</rss>

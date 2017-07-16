@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Coding on lwolfs blog</title>
+    <link>http://blog.lwolf.org/categories/coding/</link>
+    <description>Recent content in Coding on lwolfs blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 27 Jun 2014 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://blog.lwolf.org/categories/coding/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>VK API magic</title>
+      <link>http://blog.lwolf.org/post/2014-06-27-vk-api-magic/</link>
+      <pubDate>Fri, 27 Jun 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/2014-06-27-vk-api-magic/</guid>
+      <description>There are lots of posts about magic behaviour of VK API. But yeasterday I faced another one. I have simple button on my site to share page on VK using Wall.post of OpenAPI, and yesterday I found out that it stopped working. After debuging I found error in API response:
+Permission to perform this action is denied for non-standalone applications: you should request token using blank.html page.  The magical thing was that this error appears only on one type of pages, while on another everything was fine.</description>
+    </item>
+    
+    <item>
+      <title>Getting epoch date for highcharts from sqlalchemy</title>
+      <link>http://blog.lwolf.org/post/2014-06-17-getting-epoch-date-for-highcharts-from-sqlalchemy/</link>
+      <pubDate>Tue, 17 Jun 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/2014-06-17-getting-epoch-date-for-highcharts-from-sqlalchemy/</guid>
+      <description>Short sqlalchemy query to get highcharts ready data from database from datetime field.
+select count(1), extract(epoch from date_trunc(&#39;hour&#39;, created_at)) from bid group by extract(epoch from date_trunc(&#39;hour&#39;, created_at)); db.session .query( extract(&#39;epoch&#39;, func.DATE(Bid.created_at)).label(&#39;dt&#39;), func.count() ) .filter(Bid.ownership == o) .filter(Bid.created_at &amp;gt; days_to_count ) .group_by(&#39;dt&#39;) .order_by(&#39;dt&#39;) )  </description>
+    </item>
+    
+    <item>
+      <title>Obtaining never-expiring access_token to post on Facebook page</title>
+      <link>http://blog.lwolf.org/post/2014-06-16-obtaining-never-expiring-access-token-to-post-on-facebook-page/</link>
+      <pubDate>Mon, 16 Jun 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/2014-06-16-obtaining-never-expiring-access-token-to-post-on-facebook-page/</guid>
+      <description>&lt;p&gt;For one of my projects I needed to post messages to Facebook Fan Page.
+After initial search I found out that Facebook has never-expiring token specially for this.
+It looks like trivial task and I was really surprised when I didn&amp;rsquo;t find any one-page step-by-step manual to get it.
+I decided to write all steps from the beginning, not only part about gettting never-expiring token.
+&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
