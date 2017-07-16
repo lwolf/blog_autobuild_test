@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://blog.lwolf.org/sitemap.xml
+Sitemap: http://blog.lwolf.org/sitemap.xml 

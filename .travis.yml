@@ -3,8 +3,6 @@ addons:
     packages:
       - python-pygments
 
-install:
-
 script:
   - rm -rf public || exit 0
   - bin/hugo-linux64 --theme=hugo-future-imperfect
