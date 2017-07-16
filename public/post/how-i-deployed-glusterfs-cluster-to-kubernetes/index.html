@@ -1,0 +1,1378 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        
+            
+                <title>Two days of pain or how I deployed GlusterFS cluster to Kubernetes</title>
+            
+        
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content="Hugo 0.24.1" />
+        
+
+
+        
+            <meta name="author" content="Sergey Nuzhdin">
+        
+        
+            
+                <meta name="description" content="Blog about python, docker, ci/cd, kubernetes and similar stuff,">
+            
+        
+
+        
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="Two days of pain or how I deployed GlusterFS cluster to Kubernetes"/>
+<meta name="twitter:title" content="Two days of pain or how I deployed GlusterFS cluster to Kubernetes"/>
+<meta name="twitter:description" content="I spent last two days installing GlusterFS storage on top of my Kubernetes. It took much more time and effort than it should. I faced all kinds of problems, some if which were not obvious and took a lot of googling. So I decided to write this post. Hopefully it will save some time for somebody.
+I was playing with helm. Trying to assemble a complex application with several dependencies from official chart repository."/>
+
+
+        <meta property="og:title" content="Two days of pain or how I deployed GlusterFS cluster to Kubernetes" />
+<meta property="og:description" content="I spent last two days installing GlusterFS storage on top of my Kubernetes. It took much more time and effort than it should. I faced all kinds of problems, some if which were not obvious and took a lot of googling. So I decided to write this post. Hopefully it will save some time for somebody.
+I was playing with helm. Trying to assemble a complex application with several dependencies from official chart repository." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://blog.lwolf.org/post/how-i-deployed-glusterfs-cluster-to-kubernetes/" />
+
+
+
+<meta property="article:published_time" content="2017-02-09T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2017-02-09T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+        
+<meta itemprop="name" content="Two days of pain or how I deployed GlusterFS cluster to Kubernetes">
+<meta itemprop="description" content="I spent last two days installing GlusterFS storage on top of my Kubernetes. It took much more time and effort than it should. I faced all kinds of problems, some if which were not obvious and took a lot of googling. So I decided to write this post. Hopefully it will save some time for somebody.
+I was playing with helm. Trying to assemble a complex application with several dependencies from official chart repository.">
+
+
+<meta itemprop="dateModified" content="2017-02-09T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="1590">
+
+
+
+<meta itemprop="keywords" content="FaaS,Python,architecture,ci/cd,coding,coreos,devops,docker,gitlab,glusterfs,golang,high-availability,infrastructure,k8s,kubernetes,letsencrypt,monitoring,nginx,postgresql,prometheus,python,serverless,sql,ssl,storage," />
+
+        
+
+        
+
+        
+        
+            
+        
+
+        
+        
+            <link rel="stylesheet" href="../../css/google-font.css" />
+            <link rel="stylesheet" href="../../css/font-awesome.min.css" />
+            <link rel="stylesheet" href="../../css/main.css" />
+            <link rel="stylesheet" href="../../css/add-on.css" />
+            <link rel="stylesheet" href="../../css/monokai-sublime.css">
+        
+
+        
+
+        
+        
+        
+            
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47060494-2', 'auto');
+ga('send', 'pageview');
+</script>
+
+        
+    </head>
+    <body>
+
+        
+        <div id="wrapper">
+
+    
+    
+<header id="header">
+    
+        <h2><a href="../../">lwolfs blog</i></a></h2>
+    
+
+    <nav class="links">
+        <ul>
+            
+                <li>
+                    <a href="../../post">
+                        
+                            <i class="fa fa-newspaper-o">&nbsp;</i>Posts
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../categories">
+                        Categories
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../about">
+                        About
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="http://eepurl.com/cdUha1">
+                        Subscribe
+                    </a>
+                </li>
+            
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            
+            <li id="share-nav" class="share-menu" style="display:none;">
+                <a class="fa-share-alt" href="#share-menu">Share</a>
+            </li>
+            
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="//google.com/search">
+                    <input type="text" name="q" placeholder="Search" />
+                    <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+<section id="menu">
+
+    
+        <section>
+            <form class="search" method="get" action="//google.com/search">
+                <input type="text" name="q" placeholder="Search" />
+                <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+            </form>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                
+                    <li>
+                        <a href="../../post">
+                            <h3>
+                                
+                                    <i class="fa fa-newspaper-o">&nbsp;</i>
+                                
+                                Posts
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../categories">
+                            <h3>
+                                
+                                Categories
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../about">
+                            <h3>
+                                
+                                About
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="http://eepurl.com/cdUha1">
+                            <h3>
+                                
+                                Subscribe
+                            </h3>
+                        </a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/"><p>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"><p>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/"><p>Going open-source in monitoring, part 0: Intro</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"><p>How to recover data from broken GlusterFS cluster</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/"><p>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</p></a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        
+</section>
+
+    <section id="share-menu">
+    <section id="social-share-nav">
+        <ul class="links">
+            <header>
+                <h3>Share this post <i class="fa fa-smile-o"></i></h3>
+            </header>
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f&text=Two%20days%20of%20pain%20or%20how%20I%20deployed%20GlusterFS%20cluster%20to%20Kubernetes&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f&title=Two%20days%20of%20pain%20or%20how%20I%20deployed%20GlusterFS%20cluster%20to%20Kubernetes" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f&title=Two%20days%20of%20pain%20or%20how%20I%20deployed%20GlusterFS%20cluster%20to%20Kubernetes" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f&title=Two%20days%20of%20pain%20or%20how%20I%20deployed%20GlusterFS%20cluster%20to%20Kubernetes" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+</section>
+
+    
+    <div id="main">
+        
+        
+        <article class="post">
+    <header>
+    <div class="title">
+        
+            <h1><a href="http://blog.lwolf.org/post/how-i-deployed-glusterfs-cluster-to-kubernetes/">Two days of pain or how I deployed GlusterFS cluster to Kubernetes</a></h1>
+            
+        
+        
+    </div>
+    <div class="meta">
+        
+            
+        
+
+        <time class="published"
+            datetime='2017-02-09'>
+            February 9, 2017</time>
+        <span class="author">Sergey Nuzhdin</span>
+        
+            <p>8 minute read</p>
+        
+        
+    </div>
+</header>
+
+
+    <section id="social-share">
+        <ul class="icons">
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f&text=Two%20days%20of%20pain%20or%20how%20I%20deployed%20GlusterFS%20cluster%20to%20Kubernetes&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f&title=Two%20days%20of%20pain%20or%20how%20I%20deployed%20GlusterFS%20cluster%20to%20Kubernetes" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f&title=Two%20days%20of%20pain%20or%20how%20I%20deployed%20GlusterFS%20cluster%20to%20Kubernetes" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f&title=Two%20days%20of%20pain%20or%20how%20I%20deployed%20GlusterFS%20cluster%20to%20Kubernetes" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-i-deployed-glusterfs-cluster-to-kubernetes%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+    
+    
+
+    
+        
+        
+
+
+
+
+    
+    
+        
+    
+
+
+        
+
+        <a href="http://blog.lwolf.org/post/how-i-deployed-glusterfs-cluster-to-kubernetes/" class="image featured">
+            <img src="../../img/2017/02/glusterkube.png" alt="" />
+        </a>
+    
+
+
+    <div id="content">
+        
+
+<p>I spent last two days installing GlusterFS storage on top of my Kubernetes.
+It took much more time and effort than it should.
+I faced all kinds of problems, some if which were not obvious and took a lot of googling.
+So I decided to write this post. Hopefully it will save some time for somebody.</p>
+
+<p>I was playing with <a href="https://github.com/kubernetes/helm">helm</a>. Trying to assemble a complex application with several dependencies from official chart repository.
+I tried to install PostgreSQL chart with persistence enabled, but it didn&rsquo;t work.
+After inspecting manifests it became clear that it needs dynamic storage provision.
+Since I&rsquo;m running bare-metal cluster it has no proper storage solution. Everything is running NFS.
+So I cloned this chart and changed it to use NFS. Not the best solution but it worked.</p>
+
+<p>But then I tried to install Minio and faced the same problem.
+But in this case it it was impossible to do the same hack because of StatefullSet.</p>
+
+<h2 id="time-for-a-proper-distributed-storage">Time for a proper distributed storage</h2>
+
+<p>I read about dynamic storage provisioning and new StorageClass entity in Kubernetes. But since I had only NFS storages I didn’t try it.</p>
+
+<p>After some googling, I  had two choices for my storage:  <a href="https://www.gluster.org/">GlusterFS</a> and <a href="http://ceph.com/">Ceph</a>.</p>
+
+<p>They were both OK for me until I found <a href="https://github.com/heketi/heketi"><code>heketi</code></a> .</p>
+
+<blockquote>
+<p>RESTful based volume management framework for GlusterFS</p>
+
+<p>Heketi provides a RESTful management interface which can be used to manage the life cycle of GlusterFS volumes. With Heketi, cloud services like OpenStack Manila, Kubernetes, and OpenShift can dynamically provision GlusterFS volumes with any of the supported durability types. Heketi will automatically determine the location for bricks across the cluster, making sure to place bricks and its replicas across different failure domains. Heketi also supports any number of GlusterFS clusters, allowing cloud services to provide network file storage without being limited to a single GlusterFS cluster.</p>
+</blockquote>
+
+<p>So I decided to go with GlusterFS.
+Heketi even has the <a href="https://github.com/heketi/heketi/wiki/Kubernetes-Integration">guide on Kubernetes integration</a>.
+I will go through the guide here with all the problems and solutions/hacks I had to do to make it work.</p>
+
+<p>Following this guide I installed heketi-cli and started to follow the steps:</p>
+
+<pre><code>&gt; $ git clone https://github.com/heketi/heketi
+&gt; $ cd heketi/extras/kubernetes
+# create glusterfs daemonset
+&gt; $ kubectl create -f glusterfs-daemonset.json
+
+# mark nodes which will be used as glusterfs
+&gt; $ kubectl label node server-node-01 storagenode=glusterfs
+&gt; $ kubectl label node server-node-02 storagenode=glusterfs
+
+&gt; $ kubectl create -f deploy-heketi-deployment.json
+service &quot;deploy-heketi&quot; created
+deployment &quot;deploy-heketi&quot; created
+
+&gt; $ kubectl get pods
+NAME                                          READY     STATUS    RESTARTS   AGE
+deploy-heketi-3195612485-s87qd                1/1       Running   0          1m
+glusterfs-04dk7                               1/1       Running   0          1m
+glusterfs-l23jq                               1/1       Running   0          1m
+</code></pre>
+
+<p>At this point, we have 2 GlusterFS pods and heketi deployer running.</p>
+
+<pre><code>&gt; $ kubectl port-forward deploy-heketi-3195612485-s87qd :8080
+Forwarding from 127.0.0.1:54969 -&gt; 8080
+Forwarding from [::1]:54969 -&gt; 8080
+
+
+&gt; curl http://localhost:54969/hello
+Handling connection for 54969
+Hello from Heketi
+
+&gt; $ export HEKETI_CLI_SERVER=http://localhost:54969
+</code></pre>
+
+<h2 id="creating-topology">Creating topology</h2>
+
+<p>Next step in the manual was to create GlusterFS topology.
+Topology is JSON manifest with the list of all nodes, disks, and clusters used by GlusterFS.
+More information about topology is in <a href="https://github.com/heketi/heketi/wiki/Setting-up-the-topology">documentation</a>.
+Sample topology is in repository we cloned:  <a href="https://github.com/heketi/heketi/blob/master/client/cli/go/topology-sample.json">heketi/client/cli/go/topology-sample.json</a></p>
+
+<p>Here is a cut of my topology file.</p>
+
+<pre><code>{
+    &quot;clusters&quot;: [
+        {
+            &quot;nodes&quot;: [
+                {
+                    &quot;node&quot;: {
+                        &quot;hostnames&quot;: {
+                            &quot;manage&quot;: [
+                                &quot;server-node-01&quot; // &lt;- IMPORTANT! Should be name
+                            ],
+                            &quot;storage&quot;: [
+                                &quot;192.168.11.11&quot; // &lt;- IMPORTANT! Should be IP
+                            ]
+                        },
+                        &quot;zone&quot;: 1
+                    },
+                    &quot;devices&quot;: [
+                        &quot;/dev/sdb&quot;
+                    ]
+                },
+                ...
+            ]
+        }
+    ]
+}
+</code></pre>
+
+<p>We need to create topology from the file. Make sure you edited it and set your nodes and storages .  To create it run:</p>
+
+<pre><code>&gt; $ heketi-cli topology load --json=topology-sample.json
+</code></pre>
+
+<hr />
+
+<h3 id="issue-hostnames">Issue: hostnames</h3>
+
+<p>After the first run, I’ve got this error.</p>
+
+<pre><code>&gt; $ heketi-cli topology load --json=topology-sample.json
+Creating cluster ... ID: 453f4948ea32888b7925b7a0ae144fdc
+     Creating node 192.168.11.11 ... ID: d666452f025e805c6ff0644cc1363fd8
+          Adding device /dev/sdb ... Unable to add device: Unable to find a GlusterFS pod on host 192.168.11.11 with a label key glusterfs-node
+     Found node 192.168.11.12 on cluster b4b5e2fe39273e9250cc307794d28bd1
+          Adding device /dev/sdb ... Unable to add device: Unable to find a GlusterFS pod on host 192.168.11.12 with a label key glusterfs-node
+</code></pre>
+
+<p>This actually was my fault. I missed the NOTE in the documentation and put IP address instead of the hostname in <code>hostnames.manage</code>  field.</p>
+
+<p><strong>Workaround/Solution</strong>: read manuals carefully :)</p>
+
+<blockquote>
+<p>NOTE: Make sure that <code>hostnames/manage</code> points to the exact name as shown under <code>kubectl get nodes</code>, and <code>hostnames/storage</code> is the IP address of the storage network.</p>
+</blockquote>
+
+<hr />
+
+<h3 id="issue-adding-device-hangs">Issue: Adding device hangs…</h3>
+
+<p>Next time I run the command it hanged. I tried to restart the command and all pods. I tried to change the order of nodes in topology file hoping that it was some buggy node. Nothing. I tried waiting 10-15 minutes to get timeout and error as was suggested in some thread. Nothing.</p>
+
+<pre><code>&gt; $ heketi-cli topology load --json=topology-sample.json
+Creating cluster ... ID: 763d9c28bb1cbfbda46c9888f0398936
+     Creating node server-node-02 ... ID: cc0b10651a082a324395ffa12818744e
+          Adding device /dev/sdb ... ^C
+</code></pre>
+
+<p>Finally, after some test and trial, I found a workaround. It’s definitely not a solution, but at least it worked.</p>
+
+<p><strong>Workaround/Solution</strong>:  attach to all GlusterFS pods and run <code>pvcreate</code> manually.</p>
+
+<pre><code>&gt; $ kubectl get pods  | grep glusterfs
+glusterfs-631p3                             1/1       Running   0          2m
+glusterfs-fdxgr                             1/1       Running   0          2m
+
+&gt; kubectl exec -it glusterfs-631p3 /bin/bash
+[root@server-node-02 /]# ps lax
+...
+4373 ... pvcreate --metadatasize=128M --dataalignment=256K /dev/sdb
+...
+[root@server-node-02 /]# kill 4373
+[root@server-node-02 /]# pvcreate --metadatasize=128M --dataalignment=256K /dev/sdb
+  Physical volume &quot;/dev/sdb&quot; successfully created.
+</code></pre>
+
+<p>After I got it to work I tried to delete everything and run from scratch, but it hanged the same way. And again running pvcreate manually fixed the issue.</p>
+
+<p>Anyway, after this   <code>heketi-cli topology load --json=topology-sample.json</code> successfully created my topology.</p>
+
+<h2 id="create-heketi-data-volume">Create heketi data volume</h2>
+
+<p>Next step was to run  <code>heketi-cli setup-openshift-heketi-storage</code> . Which should  provision a volume for heketi’s database. The name of the command is a bit confusing. I spent some time searching to make sure that I need to run on non-openshift platform. But it should be run.</p>
+
+<p>As you may guess, it also didn’t go smooth.</p>
+
+<hr />
+
+<h3 id="issue-no-space-error">Issue: No space error</h3>
+
+<pre><code>&gt; $ heketi-cli setup-openshift-heketi-storage
+Error: No space
+</code></pre>
+
+<p>From this error response, it should be “obvious” that you have too few nodes right?!  :)</p>
+
+<p>Apparently, this command has default replication factor of 3 and it cannot be changed.</p>
+
+<p><strong>Workaround/Solution</strong>: add 3rd node to cluster.</p>
+
+<hr />
+
+<h3 id="issue-modprobe-failed">Issue: modprobe failed</h3>
+
+<p>After I added the third node and run the command again I’ve got this:</p>
+
+<pre><code>&gt; $ heketi-cli setup-openshift-heketi-storage
+Error: Unable to execute command on glusterfs-cjn49:   /usr/sbin/modprobe failed: 1
+  thin: Required device-mapper target(s) not detected in your kernel.
+  Run `lvcreate --help' for more information.
+</code></pre>
+
+<p>Quick googling lead me to this <a href="https://github.com/gluster/gluster-kubernetes/issues/19">issue</a>.</p>
+
+<p><strong>Workaround/Solution</strong>: To fix this we need to run  <code>modprobe dm_thin_pool</code> on all nodes.</p>
+
+<hr />
+
+<h3 id="issue-host-not-connected">Issue: Host not connected</h3>
+
+<p>I had one more issue, but it was due to a misconfiguration in my DNS server.</p>
+
+<pre><code>&gt; $ heketi-cli setup-openshift-heketi-storage
+Error: Unable to execute command on glusterfs-szljx: volume create: heketidbstorage: failed: Staging failed on server-node-01. Error: Host server-node-03 not connected
+</code></pre>
+
+<p><strong>Workaround/Solution</strong>: Make sure that all GlusterFS pods can resolve and ping each other.</p>
+
+<h2 id="deploying-heketi-storage">Deploying heketi storage</h2>
+
+<p>The previous command produced a file called <code>heketi-storage.json</code> . Now we need to deploy it to Kubernetes and wait until the job is finished.</p>
+
+<pre><code>&gt; $ kubectl create -f heketi-storage.json
+</code></pre>
+
+<p>After several minutes I noticed that container stuck in <code>ContainerCreating</code> state.</p>
+
+<pre><code>&gt; $ kubectl get pods
+NAME                                        READY     STATUS
+heketi-storage-copy-job-j9x09               0/1       ContainerCreating
+</code></pre>
+
+<p>In pod description, we can see that it can’t mount glusterfs filesystem.</p>
+
+<pre><code>&gt; $ kubectl describe pod heketi-storage-copy-job-j9x09
+Name:                heketi-storage-copy-job-j9x09
+...
+Events:
+  FirstSeen     LastSeen     Count     From                    SubObjectPath     Type          Reason          Message
+  ---------     --------     -----     ----                    -------------     --------     ------          -------
+  12s          12s          1     {default-scheduler }                    Normal          Scheduled     Successfully assigned heketi-storage-copy-job-j9x09 to server-node-02
+  10s          2s          5     {kubelet server-node-02}               Warning          FailedMount     MountVolume.SetUp failed for volume &quot;kubernetes.io/glusterfs/3f3dd514-edfe-11e6-80fa-000c29c84f22-heketi-storage&quot; (spec.Name: &quot;heketi-storage&quot;) pod &quot;3f3dd514-edfe-11e6-80fa-000c29c84f22&quot; (UID: &quot;3f3dd514-edfe-11e6-80fa-000c29c84f22&quot;) with: glusterfs: mount failed: mount failed: exit status 32
+Mounting command: mount
+Mounting arguments: 192.168.11.12:heketidbstorage /var/lib/kubelet/pods/3f3dd514-edfe-11e6-80fa-000c29c84f22/volumes/kubernetes.io~glusterfs/heketi-storage glusterfs [log-level=ERROR log-file=/var/lib/kubelet/plugins/kubernetes.io/glusterfs/heketi-storage/heketi-storage-copy-job-j9x09-glusterfs.log]
+Output: mount: unknown filesystem type 'glusterfs'
+
+the following error information was pulled from the glusterfs log to help diagnose this issue: glusterfs: could not open log file for pod: heketi-storage-copy-job-j9x09
+</code></pre>
+
+<p>This error was fixed by installing <code>glusterfs-client</code>  on all nodes and restarting the job.</p>
+
+<p><strong>Workaround/Solution</strong>: apt-get install glusterfs-client</p>
+
+<p>After the job is completed we need to delete everything used for bootstrap and deploy actual heketi.</p>
+
+<pre><code># wait for job status &quot;Completed&quot;
+&gt; $ kubectl get pods
+NAME                                        READY     STATUS
+heketi-storage-copy-job-j9x09               0/1      Completed
+...
+
+# delete all entities used for bootstrap
+&gt; $ kubectl delete all,service,jobs,deployment,secret --selector=&quot;deploy-heketi&quot;
+service &quot;deploy-heketi&quot; deleted
+job &quot;heketi-storage-copy-job&quot; deleted
+deployment &quot;deploy-heketi&quot; deleted
+secret &quot;heketi-storage-secret&quot; deleted
+
+# deploy heketi
+&gt; $ kubectl create -f heketi-deployment.json
+service &quot;heketi&quot; created
+deployment &quot;heketi&quot; created
+</code></pre>
+
+<h1 id="create-storageclass">Create StorageClass</h1>
+
+<p>To use our new GlusterFS cluster for dynamic provisioning we need to create StorageClass.
+More details about StorageClass entity could be found <a href="https://kubernetes.io/docs/user-guide/persistent-volumes/#storageclasses">here</a> and <a href="http://blog.kubernetes.io/2016/10/dynamic-provisioning-and-storage-in-kubernetes.html">here</a></p>
+
+<pre><code># storage-class.yml
+apiVersion: storage.k8s.io/v1beta1
+kind: StorageClass
+metadata:
+  name: slow
+provisioner: kubernetes.io/glusterfs
+parameters:
+  resturl: &quot;http://IP-ADDRESS-OF-HEKETI-SERVICE:8080&quot;
+
+&gt; $ kubectl create -f storage-class.yml
+</code></pre>
+
+<h1 id="create-dynamic-persistentvolumeclaim">Create dynamic PersistentVolumeClaim</h1>
+
+<p>Finally, we can create PVC to test that everything works.</p>
+
+<pre><code># test-pvc.yml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: myclaim
+  annotations:
+    volume.beta.kubernetes.io/storage-class: &quot;slow&quot;
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+
+
+
+&gt; $ kubectl create -f test-pvc.yml
+persistentvolumeclaim &quot;myclaim&quot; created
+
+&gt; $ kubectl get pvc
+NAME      STATUS    VOLUME            CAPACITY    ACCESSMODES   AGE
+myclaim   Bound     pvc-9dc2cf51-..   10Gi        RWO           1m
+</code></pre>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>After two days of struggle, I finally got it working.
+It was definitely worth it.</p>
+
+<p>I already tried to use it to create dynamic volumes for different helm charts and it works pretty well.
+Now I can forget about manual creating of PersistentVolumes.</p>
+
+<p>With this features bare-metal cluster became closer to cloud-based ones, at least storage-wise.</p>
+
+    </div>
+
+    <div>
+        <hr/>
+        <b>Like this post?</b> Want more? <a href="http://eepurl.com/cdUha1"><b><u>Subscribe</u></b></a> to get updates delivered straight to your inbox.
+        <hr/>
+    </div>
+    <footer>
+        <ul class="stats">
+    
+        
+
+        
+        
+            <li>
+                
+                
+                    
+
+                    
+                    
+
+                    
+
+                    
+                        Categories
+                    
+                
+            </li>
+        
+    
+
+    
+    
+        <li><a href='../../categories/glusterfs'>glusterfs</a></li>
+    
+        <li><a href='../../categories/storage'>storage</a></li>
+    
+        <li><a href='../../categories/kubernetes'>kubernetes</a></li>
+    
+        <li><a href='../../categories/docker'>docker</a></li>
+    
+        <li><a href='../../categories/infrastructure'>infrastructure</a></li>
+    
+        <li><a href='../../categories/k8s'>k8s</a></li>
+    
+</ul>
+
+    </footer>
+</article>
+<ul class="actions pagination">
+    
+        <li><a href="http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/"
+                class="button big previous">How to build tiny Golang docker images with Gitlab-CI</a></li>
+    
+
+    
+        <li><a href="http://blog.lwolf.org/post/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry/"
+                class="button big next">Fully automated GitLab installation on Kubernetes including runner and docker registry</a></li>
+    
+</ul>
+
+
+
+    
+        <article class="post">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'blog-lwolf';
+    var disqus_identifier = 'http:\/\/blog.lwolf.org\/post\/how-i-deployed-glusterfs-cluster-to-kubernetes\/';
+    var disqus_title = 'Two days of pain or how I deployed GlusterFS cluster to Kubernetes';
+    var disqus_url = 'http:\/\/blog.lwolf.org\/post\/how-i-deployed-glusterfs-cluster-to-kubernetes\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </article>
+    
+
+
+    </div>
+    
+<section id="sidebar">
+
+    
+        <section id="intro">
+            
+            
+                
+                    <a href="../../" class="logo"><img src="../../img/author.jpg" alt="Hugo Future Imperfect" /></a>
+                
+            
+            
+                <header>
+                    <h2>LWOLFS BLOG</h2>
+                    <p>Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc</p>
+                </header>
+            
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+        </section>
+
+    
+        <section id="recent-posts">
+            <ul class="posts">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-06-19'>
+                                    June 19, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-29'>
+                                    May 29, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/">Going open-source in monitoring, part 0: Intro</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-12'>
+                                    May 12, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/">How to recover data from broken GlusterFS cluster</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-31'>
+                                    March 31, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-30'>
+                                    March 30, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+
+                
+                    <li>
+                        <ul class="actions">
+                            <li><a href=
+                            
+                                /post/
+                            
+                            class="button">View more posts</a></li>
+                        </ul>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+    
+    
+    
+        <section id="categories">
+            <ul class="posts">
+                <header>
+                    <h3><a href="../../categories/">Categories</a></h3>
+                </header>
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/docker/">docker</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/infrastructure/">infrastructure</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/kubernetes/">kubernetes</a>
+                                <span style="float:right;">17</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/k8s/">k8s</a>
+                                <span style="float:right;">13</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/devops/">devops</a>
+                                <span style="float:right;">10</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ci/cd/">ci/cd</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/gitlab/">gitlab</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coding/">coding</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/monitoring/">monitoring</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/prometheus/">prometheus</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coreos/">coreos</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/glusterfs/">glusterfs</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/letsencrypt/">letsencrypt</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">python</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ssl/">ssl</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/storage/">storage</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/faas/">FaaS</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">Python</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/architecture/">architecture</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/golang/">golang</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/high-availability/">high-availability</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/nginx/">nginx</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/postgresql/">postgresql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/serverless/">serverless</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/sql/">sql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+            </ul>
+        </section>
+    
+
+    
+        
+        <section class="blurb">
+            <h2>About</h2>
+            <p>Some about me text...</p>
+
+            <ul class="actions">
+                <li><a href="../../about/" class="button">Learn More</a></li>
+            </ul>
+        </section>
+        
+
+    
+        <section id="footer">
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+
+            <p class="copyright">&copy; lwolfs blog. Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a>. Ported by <a href="//github.com/jpescador" target="_blank">Julio Pescador</a>. Powered by <a href="//gohugo.io" target="_blank">Hugo</a></p>
+        </section>
+
+</section>
+
+            </div>
+        <a id="back-to-top" href="#" class="fa fa-arrow-up fa-border fa-2x"></a>
+        
+
+        
+        
+            
+        
+
+        
+        
+            <script src="../../js/jquery.min.js"></script>
+            <script src="../../js/skel.min.js"></script>
+            <script src="../../js/util.js"></script>
+            <script src="../../js/main.js"></script>
+            <script src="../../js/backToTop.js"></script>
+            <script src="../../js/highlight.pack.js"></script>
+        
+
+        
+
+            
+            <script>hljs.initHighlightingOnLoad();</script>
+            
+
+            
+            <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-538070ba29aaa8d5"></script>
+
+    </body>
+</html>
+

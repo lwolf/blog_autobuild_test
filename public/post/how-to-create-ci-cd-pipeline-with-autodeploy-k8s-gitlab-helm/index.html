@@ -1,0 +1,1290 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        
+            
+                <title>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</title>
+            
+        
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content="Hugo 0.24.1" />
+        
+
+
+        
+            <meta name="author" content="Sergey Nuzhdin">
+        
+        
+            
+                <meta name="description" content="Blog about python, docker, ci/cd, kubernetes and similar stuff,">
+            
+        
+
+        
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm"/>
+<meta name="twitter:title" content="How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm"/>
+<meta name="twitter:description" content="Since my previous posts[1][2] about CI/CD, a lot have changed. I started using Helm for packaging applications, stopped using docker-in-docker in gitlab-runner.
+Recently, I started working on a few Golang microservices. I decided to try gitlab’s caching and split the job into multiple steps for better feedback in UI.
+Few of the main changes to my .gitlab-ci.yaml file since my previous post:
+ no docker-in-docker using cache for packages instead of a prebuilt image with dependencies splitting everything into multiple steps."/>
+
+
+        <meta property="og:title" content="How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm" />
+<meta property="og:description" content="Since my previous posts[1][2] about CI/CD, a lot have changed. I started using Helm for packaging applications, stopped using docker-in-docker in gitlab-runner.
+Recently, I started working on a few Golang microservices. I decided to try gitlab’s caching and split the job into multiple steps for better feedback in UI.
+Few of the main changes to my .gitlab-ci.yaml file since my previous post:
+ no docker-in-docker using cache for packages instead of a prebuilt image with dependencies splitting everything into multiple steps." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/" />
+
+
+
+<meta property="article:published_time" content="2017-03-30T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2017-03-30T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+        
+<meta itemprop="name" content="How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm">
+<meta itemprop="description" content="Since my previous posts[1][2] about CI/CD, a lot have changed. I started using Helm for packaging applications, stopped using docker-in-docker in gitlab-runner.
+Recently, I started working on a few Golang microservices. I decided to try gitlab’s caching and split the job into multiple steps for better feedback in UI.
+Few of the main changes to my .gitlab-ci.yaml file since my previous post:
+ no docker-in-docker using cache for packages instead of a prebuilt image with dependencies splitting everything into multiple steps.">
+
+
+<meta itemprop="dateModified" content="2017-03-30T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="874">
+
+
+
+<meta itemprop="keywords" content="FaaS,Python,architecture,ci/cd,coding,coreos,devops,docker,gitlab,glusterfs,golang,high-availability,infrastructure,k8s,kubernetes,letsencrypt,monitoring,nginx,postgresql,prometheus,python,serverless,sql,ssl,storage," />
+
+        
+
+        
+
+        
+        
+            
+        
+
+        
+        
+            <link rel="stylesheet" href="../../css/google-font.css" />
+            <link rel="stylesheet" href="../../css/font-awesome.min.css" />
+            <link rel="stylesheet" href="../../css/main.css" />
+            <link rel="stylesheet" href="../../css/add-on.css" />
+            <link rel="stylesheet" href="../../css/monokai-sublime.css">
+        
+
+        
+
+        
+        
+        
+            
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47060494-2', 'auto');
+ga('send', 'pageview');
+</script>
+
+        
+    </head>
+    <body>
+
+        
+        <div id="wrapper">
+
+    
+    
+<header id="header">
+    
+        <h2><a href="../../">lwolfs blog</i></a></h2>
+    
+
+    <nav class="links">
+        <ul>
+            
+                <li>
+                    <a href="../../post">
+                        
+                            <i class="fa fa-newspaper-o">&nbsp;</i>Posts
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../categories">
+                        Categories
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../about">
+                        About
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="http://eepurl.com/cdUha1">
+                        Subscribe
+                    </a>
+                </li>
+            
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            
+            <li id="share-nav" class="share-menu" style="display:none;">
+                <a class="fa-share-alt" href="#share-menu">Share</a>
+            </li>
+            
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="//google.com/search">
+                    <input type="text" name="q" placeholder="Search" />
+                    <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+<section id="menu">
+
+    
+        <section>
+            <form class="search" method="get" action="//google.com/search">
+                <input type="text" name="q" placeholder="Search" />
+                <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+            </form>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                
+                    <li>
+                        <a href="../../post">
+                            <h3>
+                                
+                                    <i class="fa fa-newspaper-o">&nbsp;</i>
+                                
+                                Posts
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../categories">
+                            <h3>
+                                
+                                Categories
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../about">
+                            <h3>
+                                
+                                About
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="http://eepurl.com/cdUha1">
+                            <h3>
+                                
+                                Subscribe
+                            </h3>
+                        </a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/"><p>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"><p>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/"><p>Going open-source in monitoring, part 0: Intro</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"><p>How to recover data from broken GlusterFS cluster</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/"><p>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</p></a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        
+</section>
+
+    <section id="share-menu">
+    <section id="social-share-nav">
+        <ul class="links">
+            <header>
+                <h3>Share this post <i class="fa fa-smile-o"></i></h3>
+            </header>
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f&text=How%20to%20create%20CI%2fCD%20pipeline%20with%20autodeploy%20to%20Kubernetes%20using%20GitLab%20and%20Helm&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f&title=How%20to%20create%20CI%2fCD%20pipeline%20with%20autodeploy%20to%20Kubernetes%20using%20GitLab%20and%20Helm" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f&title=How%20to%20create%20CI%2fCD%20pipeline%20with%20autodeploy%20to%20Kubernetes%20using%20GitLab%20and%20Helm" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f&title=How%20to%20create%20CI%2fCD%20pipeline%20with%20autodeploy%20to%20Kubernetes%20using%20GitLab%20and%20Helm" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+</section>
+
+    
+    <div id="main">
+        
+        
+        <article class="post">
+    <header>
+    <div class="title">
+        
+            <h1><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h1>
+            
+        
+        
+    </div>
+    <div class="meta">
+        
+            
+        
+
+        <time class="published"
+            datetime='2017-03-30'>
+            March 30, 2017</time>
+        <span class="author">Sergey Nuzhdin</span>
+        
+            <p>5 minute read</p>
+        
+        
+    </div>
+</header>
+
+
+    <section id="social-share">
+        <ul class="icons">
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f&text=How%20to%20create%20CI%2fCD%20pipeline%20with%20autodeploy%20to%20Kubernetes%20using%20GitLab%20and%20Helm&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f&title=How%20to%20create%20CI%2fCD%20pipeline%20with%20autodeploy%20to%20Kubernetes%20using%20GitLab%20and%20Helm" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f&title=How%20to%20create%20CI%2fCD%20pipeline%20with%20autodeploy%20to%20Kubernetes%20using%20GitLab%20and%20Helm" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f&title=How%20to%20create%20CI%2fCD%20pipeline%20with%20autodeploy%20to%20Kubernetes%20using%20GitLab%20and%20Helm" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+    
+    
+
+    
+        
+        
+
+
+
+
+    
+    
+        
+    
+
+
+        
+
+        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/" class="image featured">
+            <img src="../../img/2017/03/ci-pipeline.png" alt="" />
+        </a>
+    
+
+
+    <div id="content">
+        
+
+<p>Since my previous posts[<a href="http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/">1</a>][<a href="http://blog.lwolf.org/post/continuous-deployment-to-kubernetes-from-gitlab-ci/">2</a>]
+about CI/CD, a lot have changed. I started using Helm for packaging applications, stopped using docker-in-docker in gitlab-runner.<br />
+Recently, I started working on a few Golang microservices. I decided to try gitlab’s caching and split the job into multiple steps for better feedback in UI.</p>
+
+<p>Few of the main changes to my .gitlab-ci.yaml file since my previous post:</p>
+
+<ul>
+<li>no docker-in-docker</li>
+<li>using cache for packages instead of a prebuilt image with dependencies</li>
+<li>splitting everything into multiple steps.</li>
+<li>autodeploy to staging environment using Helm</li>
+</ul>
+
+<h2 id="building-golang-image">Building golang image</h2>
+
+<p>Since golang is very strict to the location of the project, we need to do some adjustments to CI job.
+This is done in the  <code>before_script</code> block. It’s simply create needed directories and link source code in there. Assuming that the official repository of the project is <code>gitlab.example.com/librerio/libr_files</code>  it should look like this.</p>
+
+<pre><code>variables:
+  APP_PATH: /go/src/gitlab.example.com/librerio/libr_files
+
+before_script:
+  - mkdir -p /go/src/gitlab.example.com/librerio/
+  - ln -s $PWD ${APP_PATH}
+  - mkdir -p ${APP_PATH}/vendor
+  - cd ${APP_PATH}
+</code></pre>
+
+<p>With this in place, we can install dependencies and build our binaries. To avoid download of all packages on each build we need to configure caching.</p>
+
+<blockquote>
+<p>Due to the strange caching rules of GitLab we need to add vendor directory to both <strong>cache</strong> and <strong>artifacts.</strong>
+Cache will give us an ability to use it between build jobs and artifacts will allow us to use it inside the same job.</p>
+</blockquote>
+
+<pre><code>cache:
+  untracked: true
+  key: &quot;$CI_BUILD_REF_NAME&quot;
+  paths:
+    - vendor/
+
+setup:
+  stage: setup
+  image: lwolf/golang-glide:0.12.3
+  script:
+    - glide install -v
+  artifacts:
+    paths:
+     - vendor/
+</code></pre>
+
+<p>Build step didn’t change, it’s still about building the binary. I add binary to artifacts.</p>
+
+<pre><code>build:
+  stage: build
+  image: lwolf/golang-glide:0.12.3
+  script:
+    - cd ${APP_PATH}
+    - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o release/app -ldflags '-w -s'
+    - cd release
+  artifacts:
+    paths:
+     - release/
+</code></pre>
+
+<h2 id="test-stage">Test stage</h2>
+
+<p>To run golang tests with coverage reports I’m using the variation of this <a href="https://github.com/mlafeldt/chef-runner/blob/v0.7.0/script/coverage">shell script</a>. It runs all tests in project subdirectories and creates a coverage report. I changed it a bit before putting into a gist. I exclude vendor directory from tests.</p>
+
+<blockquote>
+<p><strong>coverage regexp for gitlab-ci</strong>:  <code>^total:\s*\(statements\)\s*(\d+.\d+\%)</code></p>
+</blockquote>
+
+<h2 id="deploy-stage">Deploy stage</h2>
+
+<p>I don’t use native Gitlab’s integration with Kubernetes.</p>
+
+<p>First I thought about creating Kubernetes secrets and mounting it to the gitlab-runner pod. But it’s very complicated. You need to upgrade deployment every time you want to add new cluster configuration. So I’m using GitLab’s CI/CD variables with base64 encoded Kubernetes config. Each project can have any number of configurations.
+Process is easy - create base64 string from the config and copy it to the clipboard. After this, put it into <code>kube_config</code> variable (name it whatever you like).</p>
+
+<p><code>cat ~/.kube/config | base64 | pbcopy</code></p>
+
+
+<figure >
+    
+        <img src="../../img/2017/03/ci-variables.png" alt="gitlab-ci variables" />
+    
+    
+</figure>
+
+
+<blockquote>
+<p>If you do not own full gitlab installation, consider creating Kubernetes user with restricted permissions.</p>
+</blockquote>
+
+<p>Then on the deploy stage, we can decode this variable back into the file and use it with kubectl.</p>
+
+<pre><code>variables:
+  KUBECONFIG: /etc/deploy/config
+
+deploy:
+  ...
+  before_script:
+    - mkdir -p /etc/deploy
+    - echo ${kube_config} | base64 -d &gt; ${KUBECONFIG}
+    - kubectl config use-context homekube
+    - helm init --client-only
+    - helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+    - helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com/
+    - helm repo update
+</code></pre>
+
+<p>Deploy stage also covers the case when you have several versions of the same application.</p>
+
+<blockquote>
+<p>For example, you have two versions of API: v1.0 and v1.1.
+All you need to do is set <code>appVersion</code> in Chart.yaml file.
+Build system will check API version and either deploy or upgrade needed release.</p>
+</blockquote>
+
+<pre><code>- export API_VERSION=&quot;$(grep &quot;appVersion&quot; Chart.yaml | cut -d&quot; &quot; -f2)&quot;
+- export RELEASE_NAME=&quot;libr-files-v${API_VERSION/./-}&quot;
+- export DEPLOYS=$(helm ls | grep $RELEASE_NAME | wc -l)
+- if [ ${DEPLOYS}  -eq 0 ]; then helm install --name=${RELEASE_NAME} . --namespace=${STAGING_NAMESPACE}; else helm upgrade ${RELEASE_NAME} . --namespace=${STAGING_NAMESPACE}; fi
+</code></pre>
+
+<h1 id="tl-dr">TL;DR;</h1>
+
+<p>Here is complete <code>.gitlab-ci.yaml</code> file for reference.</p>
+
+<pre><code>cache:
+  untracked: true
+  key: &quot;$CI_BUILD_REF_NAME&quot;
+  paths:
+    - vendor/
+
+before_script:
+  - mkdir -p /go/src/gitlab.example.com/librerio/
+  - ln -s $PWD ${APP_PATH}
+  - mkdir -p ${APP_PATH}/vendor
+  - cd ${APP_PATH}
+
+stages:
+  - setup
+  - test
+  - build
+  - release
+  - deploy
+
+variables:
+  CONTAINER_IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
+  CONTAINER_IMAGE_LATEST: ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest
+  DOCKER_DRIVER: overlay2
+
+  KUBECONFIG: /etc/deploy/config
+  STAGING_NAMESPACE: app-stage
+  PRODUCTION_NAMESPACE: app-prod
+
+  APP_PATH: /go/src/gitlab.example.com/librerio/libr_files
+  POSTGRES_USER: gorma
+  POSTGRES_DB: test-${CI_BUILD_REF}
+  POSTGRES_PASSWORD: gorma
+
+setup:
+  stage: setup
+  image: lwolf/golang-glide:0.12.3
+  script:
+    - glide install -v
+  artifacts:
+    paths:
+     - vendor/
+
+build:
+  stage: build
+  image: lwolf/golang-glide:0.12.3
+  script:
+    - cd ${APP_PATH}
+    - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o release/app -ldflags '-w -s'
+    - cd release
+  artifacts:
+    paths:
+     - release/
+
+release:
+  stage: release
+  image: docker:latest
+  script:
+    - cd ${APP_PATH}/release
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+    - docker build -t ${CONTAINER_IMAGE} .
+    - docker tag ${CONTAINER_IMAGE} ${CONTAINER_IMAGE_LATEST}
+    - docker push ${CONTAINER_IMAGE}
+    - docker push ${CONTAINER_IMAGE_LATEST}
+
+test:
+  stage: test
+  image: lwolf/golang-glide:0.12.3
+  services:
+    - postgres:9.6
+  script:
+    - cd ${APP_PATH}
+    - curl -o coverage.sh https://gist.githubusercontent.com/lwolf/3764a3b6cd08387e80aa6ca3b9534b8a/raw
+    - sh coverage.sh
+
+deploy_staging:
+  stage: deploy
+  image: lwolf/helm-kubectl-docker:v152_213
+  before_script:
+    - mkdir -p /etc/deploy
+    - echo ${kube_config} | base64 -d &gt; ${KUBECONFIG}
+    - kubectl config use-context homekube
+    - helm init --client-only
+    - helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+    - helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com/
+    - helm repo update
+  script:
+    - cd deploy/libr-files
+    - helm dep build
+    - export API_VERSION=&quot;$(grep &quot;appVersion&quot; Chart.yaml | cut -d&quot; &quot; -f2)&quot;
+    - export RELEASE_NAME=&quot;libr-files-v${API_VERSION/./-}&quot;
+    - export DEPLOYS=$(helm ls | grep $RELEASE_NAME | wc -l)
+    - if [ ${DEPLOYS}  -eq 0 ]; then helm install --name=${RELEASE_NAME} . --namespace=${STAGING_NAMESPACE}; else helm upgrade ${RELEASE_NAME} . --namespace=${STAGING_NAMESPACE}; fi
+  environment:
+    name: staging
+    url: https://librerio.example.com
+  only:
+  - master
+</code></pre>
+
+    </div>
+
+    <div>
+        <hr/>
+        <b>Like this post?</b> Want more? <a href="http://eepurl.com/cdUha1"><b><u>Subscribe</u></b></a> to get updates delivered straight to your inbox.
+        <hr/>
+    </div>
+    <footer>
+        <ul class="stats">
+    
+        
+
+        
+        
+            <li>
+                
+                
+                    
+
+                    
+                    
+
+                    
+
+                    
+                        Categories
+                    
+                
+            </li>
+        
+    
+
+    
+    
+        <li><a href='../../categories/docker'>docker</a></li>
+    
+        <li><a href='../../categories/infrastructure'>infrastructure</a></li>
+    
+        <li><a href='../../categories/kubernetes'>kubernetes</a></li>
+    
+        <li><a href='../../categories/k8s'>k8s</a></li>
+    
+        <li><a href='../../categories/ci/cd'>ci/cd</a></li>
+    
+        <li><a href='../../categories/gitlab'>gitlab</a></li>
+    
+        <li><a href='../../categories/devops'>devops</a></li>
+    
+</ul>
+
+    </footer>
+</article>
+<ul class="actions pagination">
+    
+        <li><a href="http://blog.lwolf.org/post/how-to-deploy-ha-postgressql-cluster-on-kubernetes/"
+                class="button big previous">How to deploy HA PostgreSQL cluster on Kubernetes</a></li>
+    
+
+    
+        <li><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"
+                class="button big next">How to recover data from broken GlusterFS cluster</a></li>
+    
+</ul>
+
+
+
+    
+        <article class="post">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'blog-lwolf';
+    var disqus_identifier = 'http:\/\/blog.lwolf.org\/post\/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm\/';
+    var disqus_title = 'How to create CI\/CD pipeline with autodeploy to Kubernetes using GitLab and Helm';
+    var disqus_url = 'http:\/\/blog.lwolf.org\/post\/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </article>
+    
+
+
+    </div>
+    
+<section id="sidebar">
+
+    
+        <section id="intro">
+            
+            
+                
+                    <a href="../../" class="logo"><img src="../../img/author.jpg" alt="Hugo Future Imperfect" /></a>
+                
+            
+            
+                <header>
+                    <h2>LWOLFS BLOG</h2>
+                    <p>Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc</p>
+                </header>
+            
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+        </section>
+
+    
+        <section id="recent-posts">
+            <ul class="posts">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-06-19'>
+                                    June 19, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-29'>
+                                    May 29, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/">Going open-source in monitoring, part 0: Intro</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-12'>
+                                    May 12, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/">How to recover data from broken GlusterFS cluster</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-31'>
+                                    March 31, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-30'>
+                                    March 30, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+
+                
+                    <li>
+                        <ul class="actions">
+                            <li><a href=
+                            
+                                /post/
+                            
+                            class="button">View more posts</a></li>
+                        </ul>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+    
+    
+    
+        <section id="categories">
+            <ul class="posts">
+                <header>
+                    <h3><a href="../../categories/">Categories</a></h3>
+                </header>
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/docker/">docker</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/infrastructure/">infrastructure</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/kubernetes/">kubernetes</a>
+                                <span style="float:right;">17</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/k8s/">k8s</a>
+                                <span style="float:right;">13</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/devops/">devops</a>
+                                <span style="float:right;">10</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ci/cd/">ci/cd</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/gitlab/">gitlab</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coding/">coding</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/monitoring/">monitoring</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/prometheus/">prometheus</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coreos/">coreos</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/glusterfs/">glusterfs</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/letsencrypt/">letsencrypt</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">python</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ssl/">ssl</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/storage/">storage</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/faas/">FaaS</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">Python</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/architecture/">architecture</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/golang/">golang</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/high-availability/">high-availability</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/nginx/">nginx</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/postgresql/">postgresql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/serverless/">serverless</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/sql/">sql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+            </ul>
+        </section>
+    
+
+    
+        
+        <section class="blurb">
+            <h2>About</h2>
+            <p>Some about me text...</p>
+
+            <ul class="actions">
+                <li><a href="../../about/" class="button">Learn More</a></li>
+            </ul>
+        </section>
+        
+
+    
+        <section id="footer">
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+
+            <p class="copyright">&copy; lwolfs blog. Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a>. Ported by <a href="//github.com/jpescador" target="_blank">Julio Pescador</a>. Powered by <a href="//gohugo.io" target="_blank">Hugo</a></p>
+        </section>
+
+</section>
+
+            </div>
+        <a id="back-to-top" href="#" class="fa fa-arrow-up fa-border fa-2x"></a>
+        
+
+        
+        
+            
+        
+
+        
+        
+            <script src="../../js/jquery.min.js"></script>
+            <script src="../../js/skel.min.js"></script>
+            <script src="../../js/util.js"></script>
+            <script src="../../js/main.js"></script>
+            <script src="../../js/backToTop.js"></script>
+            <script src="../../js/highlight.pack.js"></script>
+        
+
+        
+
+            
+            <script>hljs.initHighlightingOnLoad();</script>
+            
+
+            
+            <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-538070ba29aaa8d5"></script>
+
+    </body>
+</html>
+

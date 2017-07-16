@@ -1,0 +1,1392 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        
+            
+                <title>Fully automated GitLab installation on Kubernetes including runner and docker registry</title>
+            
+        
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content="Hugo 0.24.1" />
+        
+
+
+        
+            <meta name="author" content="Sergey Nuzhdin">
+        
+        
+            
+                <meta name="description" content="Blog about python, docker, ci/cd, kubernetes and similar stuff,">
+            
+        
+
+        
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="Fully automated GitLab installation on Kubernetes including runner and docker registry"/>
+<meta name="twitter:title" content="Fully automated GitLab installation on Kubernetes including runner and docker registry"/>
+<meta name="twitter:description" content="After my previous post - How to easily deploy GitLab to Kubernetes - I’ve got a lot of responses. I helped several people to get GitLab up and running on their clusters. With that manifests it became much easier to deploy GitLab to Kubernetes. It was still few things that were usually misunderstood and misconfigured. You can find out these things only by talking with people who are actually trying to use your work."/>
+
+
+        <meta property="og:title" content="Fully automated GitLab installation on Kubernetes including runner and docker registry" />
+<meta property="og:description" content="After my previous post - How to easily deploy GitLab to Kubernetes - I’ve got a lot of responses. I helped several people to get GitLab up and running on their clusters. With that manifests it became much easier to deploy GitLab to Kubernetes. It was still few things that were usually misunderstood and misconfigured. You can find out these things only by talking with people who are actually trying to use your work." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://blog.lwolf.org/post/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry/" />
+
+
+
+<meta property="article:published_time" content="2017-02-27T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2017-02-27T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+        
+<meta itemprop="name" content="Fully automated GitLab installation on Kubernetes including runner and docker registry">
+<meta itemprop="description" content="After my previous post - How to easily deploy GitLab to Kubernetes - I’ve got a lot of responses. I helped several people to get GitLab up and running on their clusters. With that manifests it became much easier to deploy GitLab to Kubernetes. It was still few things that were usually misunderstood and misconfigured. You can find out these things only by talking with people who are actually trying to use your work.">
+
+
+<meta itemprop="dateModified" content="2017-02-27T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="1664">
+
+
+
+<meta itemprop="keywords" content="FaaS,Python,architecture,ci/cd,coding,coreos,devops,docker,gitlab,glusterfs,golang,high-availability,infrastructure,k8s,kubernetes,letsencrypt,monitoring,nginx,postgresql,prometheus,python,serverless,sql,ssl,storage," />
+
+        
+
+        
+
+        
+        
+            
+        
+
+        
+        
+            <link rel="stylesheet" href="../../css/google-font.css" />
+            <link rel="stylesheet" href="../../css/font-awesome.min.css" />
+            <link rel="stylesheet" href="../../css/main.css" />
+            <link rel="stylesheet" href="../../css/add-on.css" />
+            <link rel="stylesheet" href="../../css/monokai-sublime.css">
+        
+
+        
+
+        
+        
+        
+            
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47060494-2', 'auto');
+ga('send', 'pageview');
+</script>
+
+        
+    </head>
+    <body>
+
+        
+        <div id="wrapper">
+
+    
+    
+<header id="header">
+    
+        <h2><a href="../../">lwolfs blog</i></a></h2>
+    
+
+    <nav class="links">
+        <ul>
+            
+                <li>
+                    <a href="../../post">
+                        
+                            <i class="fa fa-newspaper-o">&nbsp;</i>Posts
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../categories">
+                        Categories
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../about">
+                        About
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="http://eepurl.com/cdUha1">
+                        Subscribe
+                    </a>
+                </li>
+            
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            
+            <li id="share-nav" class="share-menu" style="display:none;">
+                <a class="fa-share-alt" href="#share-menu">Share</a>
+            </li>
+            
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="//google.com/search">
+                    <input type="text" name="q" placeholder="Search" />
+                    <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+<section id="menu">
+
+    
+        <section>
+            <form class="search" method="get" action="//google.com/search">
+                <input type="text" name="q" placeholder="Search" />
+                <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+            </form>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                
+                    <li>
+                        <a href="../../post">
+                            <h3>
+                                
+                                    <i class="fa fa-newspaper-o">&nbsp;</i>
+                                
+                                Posts
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../categories">
+                            <h3>
+                                
+                                Categories
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../about">
+                            <h3>
+                                
+                                About
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="http://eepurl.com/cdUha1">
+                            <h3>
+                                
+                                Subscribe
+                            </h3>
+                        </a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/"><p>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"><p>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/"><p>Going open-source in monitoring, part 0: Intro</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"><p>How to recover data from broken GlusterFS cluster</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/"><p>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</p></a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        
+</section>
+
+    <section id="share-menu">
+    <section id="social-share-nav">
+        <ul class="links">
+            <header>
+                <h3>Share this post <i class="fa fa-smile-o"></i></h3>
+            </header>
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f&text=Fully%20automated%20GitLab%20installation%20on%20Kubernetes%20including%20runner%20and%20docker%20registry&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f&title=Fully%20automated%20GitLab%20installation%20on%20Kubernetes%20including%20runner%20and%20docker%20registry" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f&title=Fully%20automated%20GitLab%20installation%20on%20Kubernetes%20including%20runner%20and%20docker%20registry" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f&title=Fully%20automated%20GitLab%20installation%20on%20Kubernetes%20including%20runner%20and%20docker%20registry" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+</section>
+
+    
+    <div id="main">
+        
+        
+        <article class="post">
+    <header>
+    <div class="title">
+        
+            <h1><a href="http://blog.lwolf.org/post/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry/">Fully automated GitLab installation on Kubernetes including runner and docker registry</a></h1>
+            
+        
+        
+    </div>
+    <div class="meta">
+        
+            
+        
+
+        <time class="published"
+            datetime='2017-02-27'>
+            February 27, 2017</time>
+        <span class="author">Sergey Nuzhdin</span>
+        
+            <p>8 minute read</p>
+        
+        
+    </div>
+</header>
+
+
+    <section id="social-share">
+        <ul class="icons">
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f&text=Fully%20automated%20GitLab%20installation%20on%20Kubernetes%20including%20runner%20and%20docker%20registry&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f&title=Fully%20automated%20GitLab%20installation%20on%20Kubernetes%20including%20runner%20and%20docker%20registry" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f&title=Fully%20automated%20GitLab%20installation%20on%20Kubernetes%20including%20runner%20and%20docker%20registry" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f&title=Fully%20automated%20GitLab%20installation%20on%20Kubernetes%20including%20runner%20and%20docker%20registry" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2ffully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+    
+    
+
+    
+        
+        
+
+
+
+
+    
+    
+        
+    
+
+
+        
+
+        <a href="http://blog.lwolf.org/post/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry/" class="image featured">
+            <img src="../../img/2017/02/k8s-gitlab.png" alt="" />
+        </a>
+    
+
+
+    <div id="content">
+        
+
+<p>After my previous post - <a href="http://blog.lwolf.org/post/how-to-easily-deploy-gitlab-on-kubernetes/">How to easily deploy GitLab to Kubernetes</a> - I’ve got a lot of responses. I helped several people to get GitLab up and running on their clusters.
+With that manifests it became much easier to deploy GitLab to Kubernetes. It was still few things that were usually misunderstood and misconfigured. You can find out these things only by talking with people who are actually trying to use your work.
+Among other things, I received several requests to make <a href="https://helm.sh/">helm</a> chart for my deployment.</p>
+
+<p>In case you don&rsquo;t know yet. Helm is the package management system for Kubernetes.
+It simplifies deployments and reduces copy-pasting of manifests between projects.
+You can read more about it <a href="https://github.com/kubernetes/helm">here</a> and check for some charts <a href="https://github.com/kubernetes/charts/">here</a>.
+Also, there is a great introduction post about helm <a href="https://hackernoon.com/the-missing-ci-cd-kubernetes-component-helm-package-manager-1fe002aac680">here</a>.</p>
+
+<p>If you still not convinced to use helm, you can still use its charts to deploy applications manually.
+To do this you need to run helm server locally and add <code>--debug --dry-run</code> to all install commands.
+This will print resulting manifests to the terminal. You could save it to the files and apply with kubectl.</p>
+
+<p>Since I was migrating most of my manifests to charts I decided to do it also with GitLab.
+I saw that there is a <a href="https://github.com/kubernetes/charts/tree/master/stable/gitlab-ce">gitlab-ci chart</a> in the official charts repository, but it only covers basic setup.
+So I decided to automate my existing setup.
+After several days <a href="https://github.com/lwolf/gitlab-chart">this chart</a> was born.</p>
+
+<h5 id="some-of-the-key-features">Some of the key features:</h5>
+
+<ul>
+<li>Fully automated installation of GitLab.</li>
+<li>Register and manage LetsEncrypt certificates with kube-lego</li>
+<li>Deploys docker registry with an external domain (Letsencrypt protected) and integration with GitLab.</li>
+<li>Semi-automatic creating of Runner</li>
+<li>Ability to customize any of the environment variables</li>
+</ul>
+
+<h5 id="things-that-this-chart-does-not-do">Things that this chart does not do:</h5>
+
+<ul>
+<li><strong>it does not create load balancer</strong>.  If you’re using cloud provider - load balancer is already there. If you’re using baremetal, you can manually deploy one using manifests.</li>
+<li><strong>it does not deploy kube-lego</strong>. It does not make any sense to me to bundle kube-lego with GitLab.
+So, if you want to use TLS/SSL mode - do install kube-lego manually:
+<code>helm install --set config.LEGO_EMAIL=&lt;your-email&gt; stable/kube-lego</code>. For production deploy, you will also want to set <code>--set config.LEGO_URL=https://acme-v01.api.letsencrypt.org/directory</code></li>
+</ul>
+
+<p>This post consists of a few blocks. Each block describes the minimum configuration to enable the feature.</p>
+
+<h4 id="navigation">Navigation:</h4>
+
+<ul>
+<li><a href="#minimum_install">Minimum install</a></li>
+<li><a href="#runner">Gitlab CI multi runner</a></li>
+<li><a href="#registry">Docker registry</a></li>
+<li><a href="#advanded">Advanced settings</a></li>
+<li><a href="#tldr">TL;DR;</a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+</ul>
+
+<h2 id="getting-started">Getting started</h2>
+
+<p>First of all, you need to clone my repository with the chart.</p>
+
+<pre><code class="language-bash">$ git clone https://github.com/lwolf/gitlab-chart
+$ cd gitlab-chart/gitlab
+# Make a copy of the original values files
+$ cp values.yaml values-test.yaml
+</code></pre>
+
+<p>If you open this values file you may notice a few important sections:</p>
+
+<ul>
+<li><strong>ingress</strong> - used to configure ingress rules</li>
+<li><strong>persistence</strong> - persistent storage configuration</li>
+<li><strong>config</strong> - primary configuration block for all GitLab related settings. All variables from here could be used.</li>
+<li><strong>postgresql</strong> - settings related to the PostgreSQL subchart</li>
+<li><strong>redis</strong> - settings related to the Redis subchart</li>
+<li><strong>minio</strong> - settings related to the Minio subchart</li>
+<li><strong>runner</strong> - settings related to the Runner subchart</li>
+<li><strong>registry</strong> - settings related to the Docker Registry subchart</li>
+</ul>
+
+<blockquote>
+<p>I recommend you to set <strong>persistence</strong> to <strong>false</strong> in all components until you end up with the config you’re happy with.</p>
+</blockquote>
+
+<h2 id="minimum_install">Minimum install</h2>
+
+<p>Let&rsquo;s start with the simple GitLab installation. It covers:</p>
+
+<ul>
+<li>basic gitlab installation</li>
+<li>external domain gitlab.example.com with SSL from LetsEncrypt</li>
+</ul>
+
+<pre><code class="language-yaml">config:
+  GITLAB_ROOT_EMAIL: &quot;admin-email@example.com&quot;
+  GITLAB_HOST: &quot;gitlab.example.com&quot;
+  GITLAB_SSH_HOST: &quot;git.example.com&quot;
+
+ingress:
+  enabled: true
+  # configNamespaceOverride: &quot;default&quot;
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: 'true'
+  hosts:
+    - gitlab.example.com
+  tls:
+    - secretName: gitlab-server-tls
+      hosts:
+        - gitlab.example.com
+</code></pre>
+
+<p>This is the minimum config you need to write in your <code>values-test.yaml</code> to deploy GitLab.</p>
+
+<blockquote>
+<p>One setting worth mentioning here - <strong>configNamespaceOverride</strong>.
+It sets namespace in configmap for TCP port rules.
+Set it, if your load balancer is deployed to the namespace other than the one you’re deploying GitLab.</p>
+</blockquote>
+
+<p>Let’s try to install it.</p>
+
+<pre><code class="language-bash"># add repository (needed for dependencies)
+$ helm repo add lwolf-charts http://charts.lwolf.org
+# get dependencies
+$ helm dep build
+# First run it with --debug --dry-run to check that everything is fine.
+$ helm install -f values-test.yaml . --namespace=gitlab --debug --dry-run
+# Next install it.
+$ helm install -f values-test.yaml . --namespace=gitlab
+</code></pre>
+
+<p>watch <code>kubectl get pods --namespace=gitlab --watch</code> for the progress.
+Complete installation takes around 5 minutes. I found the next script very useful:</p>
+
+<pre><code class="language-bash">$ while ! curl --output /dev/null --silent --head --fail https://gitlab.example.com/help; do sleep 1 &amp;&amp; echo -n .; done
+................
+</code></pre>
+
+<p>It will keep polling GitLab until it became available.</p>
+
+<p>After everything is up and running you can access your GitLab with login <strong>root</strong>(or email).
+The chart will generate a random password on each run. You can override this behavior by setting <code>config.GITLAB_ROOT_PASSWORD</code> setting.</p>
+
+<blockquote>
+<p>Installation generates all secrets on each run.
+Make sure to save them an update values-test.yaml after the first run.
+I added a <code>dump_secrets.sh</code> script to the repository to make it easier. Run <code>bash dump_secrets.sh &lt;install-name&gt;</code> and save the result to the config section.</p>
+</blockquote>
+
+<h2 id="runner">GitLab CI multi runner</h2>
+
+<p>I spent some time trying to automate GitLab runner creating. It seems that it’s impossible now due to some limitations at GitLab side.</p>
+
+<p>But I was able to semi-automate it.
+Instead of running registration of runner after the installation manually, I’m doing it as a part of the installation process.</p>
+
+<p>First let’s take a look at the options we need to set for the runner.</p>
+
+<pre><code class="language-yaml">config:
+  GITLAB_SHARED_RUNNERS_REGISTRATION_TOKEN: &quot;186f6cdcb713ad560EXAMPLETOKEN&quot;
+
+minio:
+  accessKey: &quot;AKIAIOSFODNN7EXAMPLE&quot;
+  secretKey: &quot;wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY&quot;
+
+runner:
+  enabled: true
+  gitlabUrl: &quot;https://gitlab.example.com/ci/&quot;
+  registrationToken: &quot;186f6cdcb713ad560EXAMPLETOKEN&quot;
+  cache:
+    enabled: true
+    accessKey: &quot;AKIAIOSFODNN7EXAMPLE&quot;
+    secretKey: &quot;wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY&quot;
+</code></pre>
+
+<p>Important parts here are <code>tokens</code> and <code>accessKeys</code>.
+To make automatic runner registration possible we need to set <code>config.GITLAB_SHARED_RUNNERS_REGISTRATION_TOKEN</code> and set <code>runner.registrationToken</code> to the same value.</p>
+
+<blockquote>
+<p>Few words about the logic behind creating runners.</p>
+
+<p>First, we’re registering the runner in GitLab. This is done by the job automatically. The only requirement is registrationToken .
+The second step is to provide runners token to the setup and run upgrade. This will create deployment for the runner.</p>
+</blockquote>
+
+<p>With runner, our setup process will now consist of the two steps.
+First will install GitLab and all its components. It will also register the new runner.
+The second step will be to upgrade setup will runner token.
+You could get it from the web interface after GitLab became available - <a href="https://gitlab.example.com/admin/runners/1">https://gitlab.example.com/admin/runners/1</a>.</p>
+
+<pre><code class="language-yaml"># Install it as usual
+helm install -f values-test.yaml . --namespace=gitlab
+# Wait until GitLab is up and running. 
+# Open GitLab runner configuration and check that Runner is successfully registered.
+# Copy token and run upgrade.
+helm upgrade -f values-test.yaml --set runner.token=&lt;TOKEN&gt; &lt;install-name&gt; . --namespace=gitlab
+</code></pre>
+
+<p>To test that everything works try import <a href="https://gitlab.com/gitlab-examples/docker">test repository</a> and run tests.</p>
+
+<h2 id="registry">Docker registry</h2>
+
+<p>Another important part of the installation is docker registry.
+My previous manifests did not do real integration between GitLab and docker registry.</p>
+
+<p>In this setup registry is fully integrated with GitLab. Authentication is handled by GitLab. Images are shown in the UI.</p>
+
+<p>At the same time, the registry is still accessible from the outside world by separate domain. With automatic LetsEncrypt certificate.</p>
+
+<p>Here is the settings that needs to be set to enable registry.</p>
+
+<pre><code class="language-yaml">config:
+  GITLAB_REGISTRY_ENABLED: true
+  GITLAB_REGISTRY_HOST: dhub.example.com
+  GITLAB_REGISTRY_PORT: 443
+  GITLAB_REGISTRY_API_URL: https://dhub.example.com
+  GITLAB_REGISTRY_KEY_PATH: /certs/tls.key
+  SSL_REGISTRY_KEY_PATH: /certs/tls.key
+  SSL_REGISTRY_CERT_PATH: /certs/tls.crt
+  
+registry:
+  enabled: true
+  authTokenRealm: &quot;https://gitlab.example.com/jwt/auth&quot;
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: 'true'
+    hosts:
+      - dhub.example.com
+</code></pre>
+
+<p>Certificates will be mounted in both gitlab and registry pods to the directory <code>/certs</code>.</p>
+
+<p>After the installation, you can clone test repository and open registry tab. You should be able to log in and push images to this repository.</p>
+
+
+<figure >
+    
+        <img src="../../img/2017/02/gitlab-registry-page.png" alt="Gitlab registry page" />
+    
+    
+</figure>
+
+
+<h2 id="advanded">Advanced settings</h2>
+
+<p>It’s more than 200 different settings that could be set to customize the setup.
+I split it into logical parts which could be enabled and disabled.</p>
+
+<pre><code class="language-yaml">├── templates
+│   ├── partials
+│   │   ├── _advanced.yaml
+│   │   ├── _backup.yaml
+│   │   ├── _backup_aws.yaml
+│   │   ├── _backup_gcs.yaml
+│   │   ├── _email.yaml
+│   │   ├── _gitlab_registry.yaml
+│   │   ├── _imap.yaml
+│   │   ├── _ldap.yaml
+│   │   ├── _nginx_tuning.yaml
+│   │   ├── _oauth.yaml
+│   │   ├── _rack.yaml
+│   │   ├── _smtp.yaml
+│   │   └── _ssl.yaml
+</code></pre>
+
+<p>For example to enable SMTP you need to set <code>SMTP_ENABLED=true</code>  and add other settings related to SMTP.</p>
+
+<pre><code class="language-yaml">config:
+    SMTP_ENABLED: true
+    SMTP_DOMAIN: gitlab.example.com 
+    SMTP_HOST: smtp.mailgun.org 
+    SMTP_PORT: &quot;587&quot; 
+    SMTP_USER: ******* 
+    SMTP_PASS: ******* 
+    SMTP_STARTTLS: &quot;true&quot; 
+    SMTP_AUTHENTICATION: login
+</code></pre>
+
+<p>All settings have the same name as in <a href="https://github.com/sameersbn/docker-gitlab">sameersbn/docker-gitlab image</a>.</p>
+
+<h2 id="tldr">TL;DR;</h2>
+
+<p>To install GitLab with registry and runner you need to do the following:</p>
+
+<h3 id="manual-way-with-clonning-github-repository">Manual way (with clonning github-repository)</h3>
+
+<pre><code class="language-bash"># add repository (needed for dependencies)
+$ helm repo add lwolf-charts http://charts.lwolf.org
+
+$ git clone https://github.com/lwolf/gitlab-chart
+$ cd gitlab-chart/gitlab
+# get dependencies
+$ helm dep build
+# copy values file
+$ cp values.yaml values-test.yaml
+# edit your values-test.yaml file.
+
+# Install it as usual
+$ helm install -f values-test.yaml . --namespace=gitlab
+
+# Wait until gitlab is up and running. 
+$ while ! curl --output /dev/null --silent --head --fail https://gitlab.example.com/help; do sleep 1 &amp;&amp; echo -n .; done
+...................................................
+
+# Open gitlab runner configuration and check that Runner is successfully registered.
+# Copy token and run upgrade.
+$ helm upgrade -f values-test.yaml --set runner.token=&lt;TOKEN&gt; &lt;install-name&gt; . --namespace=gitlab
+</code></pre>
+
+<h3 id="automatic-way-installation-directly-from-the-chart-repository">Automatic way (installation directly from the chart-repository)</h3>
+
+<pre><code class="language-bash"># add repository (needed for dependencies)
+$ helm repo add lwolf-charts http://charts.lwolf.org
+
+# get default values.yaml file
+$ curl https://raw.githubusercontent.com/lwolf/gitlab-chart/master/gitlab/values.yaml -o values-test.yaml
+
+# install
+$ helm install -f values-test.yaml lwolf-charts/gitlab
+# Wait until gitlab is up and running.
+$ while ! curl --output /dev/null --silent --head --fail https://gitlab.example.com/help; do sleep 1 &amp;&amp; echo -n .; done
+...................................................
+
+# Open gitlab runner configuration and check that Runner is successfully registered.
+# Copy token and run upgrade.
+$ helm upgrade -f values-test.yaml --set runner.token=&lt;TOKEN&gt; &lt;install-name&gt; lwolf-charts/gitlab --namespace=gitlab
+
+</code></pre>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>This chart is in the early stage and it still needs some refactoring and a lot of testing.
+I’m not using lot’s of the features like <code>gce_backups</code> or <code>LDAP integrations</code>, so it is not tested at all.
+If you’re using my previous manifests or going to use this chart - let me know about any issues.</p>
+
+<p>For now, the roadmap looks like this:</p>
+
+<ul>
+<li>testing/refactoring</li>
+<li>splitting registry/runner into separate charts</li>
+<li>more flexible runner configuration</li>
+<li>monitoring of the whole thing in Prometheus</li>
+</ul>
+
+    </div>
+
+    <div>
+        <hr/>
+        <b>Like this post?</b> Want more? <a href="http://eepurl.com/cdUha1"><b><u>Subscribe</u></b></a> to get updates delivered straight to your inbox.
+        <hr/>
+    </div>
+    <footer>
+        <ul class="stats">
+    
+        
+
+        
+        
+            <li>
+                
+                
+                    
+
+                    
+                    
+
+                    
+
+                    
+                        Categories
+                    
+                
+            </li>
+        
+    
+
+    
+    
+        <li><a href='../../categories/docker'>docker</a></li>
+    
+        <li><a href='../../categories/infrastructure'>infrastructure</a></li>
+    
+        <li><a href='../../categories/kubernetes'>kubernetes</a></li>
+    
+        <li><a href='../../categories/k8s'>k8s</a></li>
+    
+        <li><a href='../../categories/ci/cd'>ci/cd</a></li>
+    
+        <li><a href='../../categories/gitlab'>gitlab</a></li>
+    
+        <li><a href='../../categories/devops'>devops</a></li>
+    
+</ul>
+
+    </footer>
+</article>
+<ul class="actions pagination">
+    
+        <li><a href="http://blog.lwolf.org/post/how-i-deployed-glusterfs-cluster-to-kubernetes/"
+                class="button big previous">Two days of pain or how I deployed GlusterFS cluster to Kubernetes</a></li>
+    
+
+    
+        <li><a href="http://blog.lwolf.org/post/how-to-deploy-ha-postgressql-cluster-on-kubernetes/"
+                class="button big next">How to deploy HA PostgreSQL cluster on Kubernetes</a></li>
+    
+</ul>
+
+
+
+    
+        <article class="post">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'blog-lwolf';
+    var disqus_identifier = 'http:\/\/blog.lwolf.org\/post\/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry\/';
+    var disqus_title = 'Fully automated GitLab installation on Kubernetes including runner and docker registry';
+    var disqus_url = 'http:\/\/blog.lwolf.org\/post\/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </article>
+    
+
+
+    </div>
+    
+<section id="sidebar">
+
+    
+        <section id="intro">
+            
+            
+                
+                    <a href="../../" class="logo"><img src="../../img/author.jpg" alt="Hugo Future Imperfect" /></a>
+                
+            
+            
+                <header>
+                    <h2>LWOLFS BLOG</h2>
+                    <p>Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc</p>
+                </header>
+            
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+        </section>
+
+    
+        <section id="recent-posts">
+            <ul class="posts">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-06-19'>
+                                    June 19, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-29'>
+                                    May 29, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/">Going open-source in monitoring, part 0: Intro</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-12'>
+                                    May 12, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/">How to recover data from broken GlusterFS cluster</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-31'>
+                                    March 31, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-30'>
+                                    March 30, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+
+                
+                    <li>
+                        <ul class="actions">
+                            <li><a href=
+                            
+                                /post/
+                            
+                            class="button">View more posts</a></li>
+                        </ul>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+    
+    
+    
+        <section id="categories">
+            <ul class="posts">
+                <header>
+                    <h3><a href="../../categories/">Categories</a></h3>
+                </header>
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/docker/">docker</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/infrastructure/">infrastructure</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/kubernetes/">kubernetes</a>
+                                <span style="float:right;">17</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/k8s/">k8s</a>
+                                <span style="float:right;">13</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/devops/">devops</a>
+                                <span style="float:right;">10</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ci/cd/">ci/cd</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/gitlab/">gitlab</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coding/">coding</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/monitoring/">monitoring</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/prometheus/">prometheus</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coreos/">coreos</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/glusterfs/">glusterfs</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/letsencrypt/">letsencrypt</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">python</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ssl/">ssl</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/storage/">storage</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/faas/">FaaS</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">Python</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/architecture/">architecture</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/golang/">golang</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/high-availability/">high-availability</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/nginx/">nginx</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/postgresql/">postgresql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/serverless/">serverless</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/sql/">sql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+            </ul>
+        </section>
+    
+
+    
+        
+        <section class="blurb">
+            <h2>About</h2>
+            <p>Some about me text...</p>
+
+            <ul class="actions">
+                <li><a href="../../about/" class="button">Learn More</a></li>
+            </ul>
+        </section>
+        
+
+    
+        <section id="footer">
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+
+            <p class="copyright">&copy; lwolfs blog. Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a>. Ported by <a href="//github.com/jpescador" target="_blank">Julio Pescador</a>. Powered by <a href="//gohugo.io" target="_blank">Hugo</a></p>
+        </section>
+
+</section>
+
+            </div>
+        <a id="back-to-top" href="#" class="fa fa-arrow-up fa-border fa-2x"></a>
+        
+
+        
+        
+            
+        
+
+        
+        
+            <script src="../../js/jquery.min.js"></script>
+            <script src="../../js/skel.min.js"></script>
+            <script src="../../js/util.js"></script>
+            <script src="../../js/main.js"></script>
+            <script src="../../js/backToTop.js"></script>
+            <script src="../../js/highlight.pack.js"></script>
+        
+
+        
+
+            
+            <script>hljs.initHighlightingOnLoad();</script>
+            
+
+            
+            <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-538070ba29aaa8d5"></script>
+
+    </body>
+</html>
+

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>FaaS on lwolfs blog</title>
+    <link>http://blog.lwolf.org/categories/faas/</link>
+    <description>Recent content in FaaS on lwolfs blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 16 Jan 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://blog.lwolf.org/categories/faas/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>How to run Functions in your Kubernetes cluster</title>
+      <link>http://blog.lwolf.org/post/how-to-run-functions-in-your-kubernetes-cluster/</link>
+      <pubDate>Mon, 16 Jan 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-run-functions-in-your-kubernetes-cluster/</guid>
+      <description>Serverless or Function as a Service  What is Serverless/FaaS? Serverless is a new paradigm in computing that enables simplicity, efficiency and scalability for both developers and operators.
+ For a long time, there was only one FaaS implementation available for Kubernetes - Funktion. Which I found a bit complicated and tightly coupled with the fabric8 platform. They claim to support functions in any language, but I found only java and nodejs examples in the repo.</description>
+    </item>
+    
+  </channel>
+</rss>

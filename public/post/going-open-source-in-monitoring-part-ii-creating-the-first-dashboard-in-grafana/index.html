@@ -1,0 +1,1360 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        
+            
+                <title>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</title>
+            
+        
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content="Hugo 0.24.1" />
+        
+
+
+        
+            <meta name="author" content="Sergey Nuzhdin">
+        
+        
+            <meta name="description" content="Series of posts about migration from commercial monitoring systems to opensource. Replace NewRelic with Prometheus">
+        
+
+        
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="Going open-source in monitoring, part II: Creating the first dashboard in Grafana"/>
+<meta name="twitter:title" content="Going open-source in monitoring, part II: Creating the first dashboard in Grafana"/>
+<meta name="twitter:description" content="Series of posts about migration from commercial monitoring systems to opensource. Replace NewRelic with Prometheus"/>
+
+
+        <meta property="og:title" content="Going open-source in monitoring, part II: Creating the first dashboard in Grafana" />
+<meta property="og:description" content="Series of posts about migration from commercial monitoring systems to opensource. Replace NewRelic with Prometheus" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/" />
+
+
+
+<meta property="article:published_time" content="2017-06-19T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2017-06-19T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+        
+<meta itemprop="name" content="Going open-source in monitoring, part II: Creating the first dashboard in Grafana">
+<meta itemprop="description" content="Series of posts about migration from commercial monitoring systems to opensource. Replace NewRelic with Prometheus">
+
+
+<meta itemprop="dateModified" content="2017-06-19T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="1055">
+
+
+
+<meta itemprop="keywords" content="FaaS,Python,architecture,ci/cd,coding,coreos,devops,docker,gitlab,glusterfs,golang,high-availability,infrastructure,k8s,kubernetes,letsencrypt,monitoring,nginx,postgresql,prometheus,python,serverless,sql,ssl,storage," />
+
+        
+
+        
+
+        
+        
+            
+        
+
+        
+        
+            <link rel="stylesheet" href="../../css/google-font.css" />
+            <link rel="stylesheet" href="../../css/font-awesome.min.css" />
+            <link rel="stylesheet" href="../../css/main.css" />
+            <link rel="stylesheet" href="../../css/add-on.css" />
+            <link rel="stylesheet" href="../../css/monokai-sublime.css">
+        
+
+        
+
+        
+        
+        
+            
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47060494-2', 'auto');
+ga('send', 'pageview');
+</script>
+
+        
+    </head>
+    <body>
+
+        
+        <div id="wrapper">
+
+    
+    
+<header id="header">
+    
+        <h2><a href="../../">lwolfs blog</i></a></h2>
+    
+
+    <nav class="links">
+        <ul>
+            
+                <li>
+                    <a href="../../post">
+                        
+                            <i class="fa fa-newspaper-o">&nbsp;</i>Posts
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../categories">
+                        Categories
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../about">
+                        About
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="http://eepurl.com/cdUha1">
+                        Subscribe
+                    </a>
+                </li>
+            
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            
+            <li id="share-nav" class="share-menu" style="display:none;">
+                <a class="fa-share-alt" href="#share-menu">Share</a>
+            </li>
+            
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="//google.com/search">
+                    <input type="text" name="q" placeholder="Search" />
+                    <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+<section id="menu">
+
+    
+        <section>
+            <form class="search" method="get" action="//google.com/search">
+                <input type="text" name="q" placeholder="Search" />
+                <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+            </form>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                
+                    <li>
+                        <a href="../../post">
+                            <h3>
+                                
+                                    <i class="fa fa-newspaper-o">&nbsp;</i>
+                                
+                                Posts
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../categories">
+                            <h3>
+                                
+                                Categories
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../about">
+                            <h3>
+                                
+                                About
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="http://eepurl.com/cdUha1">
+                            <h3>
+                                
+                                Subscribe
+                            </h3>
+                        </a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/"><p>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"><p>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/"><p>Going open-source in monitoring, part 0: Intro</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"><p>How to recover data from broken GlusterFS cluster</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/"><p>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</p></a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        
+</section>
+
+    <section id="share-menu">
+    <section id="social-share-nav">
+        <ul class="links">
+            <header>
+                <h3>Share this post <i class="fa fa-smile-o"></i></h3>
+            </header>
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f&text=Going%20open-source%20in%20monitoring%2c%20part%20II%3a%20Creating%20the%20first%20dashboard%20in%20Grafana&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f&title=Going%20open-source%20in%20monitoring%2c%20part%20II%3a%20Creating%20the%20first%20dashboard%20in%20Grafana" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f&title=Going%20open-source%20in%20monitoring%2c%20part%20II%3a%20Creating%20the%20first%20dashboard%20in%20Grafana" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f&title=Going%20open-source%20in%20monitoring%2c%20part%20II%3a%20Creating%20the%20first%20dashboard%20in%20Grafana" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+</section>
+
+    
+    <div id="main">
+        
+        
+        <article class="post">
+    <header>
+    <div class="title">
+        
+            <h1><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h1>
+            
+        
+        
+            <p>Series of posts about migration from commercial monitoring systems to opensource. Replace NewRelic with Prometheus</p>
+        
+    </div>
+    <div class="meta">
+        
+            
+        
+
+        <time class="published"
+            datetime='2017-06-19'>
+            June 19, 2017</time>
+        <span class="author">Sergey Nuzhdin</span>
+        
+            <p>5 minute read</p>
+        
+        
+    </div>
+</header>
+
+
+    <section id="social-share">
+        <ul class="icons">
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f&text=Going%20open-source%20in%20monitoring%2c%20part%20II%3a%20Creating%20the%20first%20dashboard%20in%20Grafana&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f&title=Going%20open-source%20in%20monitoring%2c%20part%20II%3a%20Creating%20the%20first%20dashboard%20in%20Grafana" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f&title=Going%20open-source%20in%20monitoring%2c%20part%20II%3a%20Creating%20the%20first%20dashboard%20in%20Grafana" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f&title=Going%20open-source%20in%20monitoring%2c%20part%20II%3a%20Creating%20the%20first%20dashboard%20in%20Grafana" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fgoing-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+    
+    
+
+    
+        
+        
+
+
+
+
+    
+    
+        
+    
+
+
+        
+
+        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/" class="image featured">
+            <img src="../../img/2017/06/grafana-cover.png" alt="" />
+        </a>
+    
+
+
+    <div id="content">
+        
+
+<p>This post is one of a series of posts about monitoring of infrastructure and services. Other posts in the series:</p>
+
+<ol>
+<li><strong><a href="../../post/going-open-source-in-monitoring-part-0-intro/">Intro</a></strong></li>
+<li><strong><a href="../../post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Deploying Prometheus and Grafana to Kubernetes</a></strong></li>
+<li><strong>Creating the first dashboard in Grafana</strong> (this article)</li>
+<li>10 most useful Grafana dashboards to monitor Kubernetes and services</li>
+<li>Configuring alerts in Prometheus and Grafana</li>
+<li>Making sense of logs with ELK(EFK) stack and Sentry</li>
+<li>Replacing commercial APM monitoring</li>
+</ol>
+
+<hr />
+
+<p>Having <a href="https://grafana.net/dashboards">grafana.net/dashboards</a> with dozens of dashboards to choose from is awesome and helps get started with monitoring, but creating your own dashboards from scratch is also very helpful.
+When I first deployed Grafana, I imported a lot of ready dashboards, really a lot. Many of them worked out of the box, but many did not. In most cases, the fix was in change of template variables, but some required deeper involvement and understanding of how everything works. Such understanding could be acquired by creating your own dashboards.</p>
+
+<p>Since one of the goals of the whole project is to replace NewRelic, the first dashboard will replicate its basic server monitoring page. In case you do not know, it looks like this.</p>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/newrelic-server-view.png" alt="NewRelic Server View" />
+    
+    
+</figure>
+
+
+<p>The corresponding dashboard we building is shown below.</p>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/newrelic-prom-view.png" alt="Grafana Server View Dashboard" />
+    
+    
+</figure>
+
+
+<h1 id="creating-server-monitoring-dashboard">Creating server monitoring dashboard</h1>
+
+<p>It’s time to create the dashboard. If you just installed Grafana you’ll have
+“Create your first dashboard” button on the homepage. Otherwise, click “create new” from the top dropdown.
+I’m not going to copy the <a href="http://docs.grafana.org/guides/getting_started/">gettings-started guide</a> from grafana docs, so if you do not know grafana basics, like how to add a graph to the dashboards - read the <a href="http://docs.grafana.org/guides/getting_started/">guide</a> or watch the 10min <a href="https://www.youtube.com/watch?v=sKNZMtoSHN4&amp;index=7&amp;list=PLDGkOdUX1Ujo3wHw9-z5Vo12YLqXRjzg2">beginners guide to building dashboards</a> to get a quick intro to setting up Dashboards and Panels.</p>
+
+<p><strong>Templating</strong></p>
+
+<p>One of the essential features of Grafana is an ability to create variables. It allows you to create interactive and dynamic dashboards. You can have a single variable, like server selector, or a chain of variables each new populated based on previous selection, like namespace -&gt; deployment -&gt; Pod.</p>
+
+<p>Templating is usually not the first thing covered in manuals. The common way is to create all graphs with hardcoded values and then replace it with the variable. I’m going to cover templating first and use variables from the beginning.</p>
+
+<p>For this dashboard, we need only one variable - server selector.</p>
+
+<p>To add one go to <strong>Manage dashboards</strong> → <strong>Templating</strong> → <strong>Variables</strong>,  and click  <strong>+New.</strong></p>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/templating1.png" alt="Grafana template add" />
+    
+    
+</figure>
+
+
+<p>You’ll get to the edit variable tab.
+First, set <strong>Name</strong> and <strong>Label</strong> of the new variable. I prefer to have identical label and name, it helps you not to keep the mapping between label and its name in mind.</p>
+
+<p>Next, we need to set query options. This is the place where we can select data to populate dropdown.
+<strong>Data source</strong>: prometheus data source you’ve created
+<strong>Refresh</strong>: one of: Never / On Dashboard Load / On Time Range change. Choose what is suitable for your setup.
+<strong>Query</strong>:  label_values(node_boot_time{component=”node-exporter”}, instance). What does this query say. Take <code>node_boot_time</code> metric, filter it by label component=&ldquo;node-exporter&rdquo; and return a  list of values of the label <code>instance</code> . <a href="http://docs.grafana.org/features/datasources/prometheus/#query-variable">More about queries</a>.
+<strong>Regex</strong>: Regular expression is optional, but sometimes is very helpful. For example, in my case, the result of the query is IP:PORT, but I want to show only IP in the dropdown. With regex you can make required transformations.</p>
+
+<p>During edit of the query, you will see a realtime result in the bottom,  under the “Preview of the values&rdquo; block.</p>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/templating2.png" alt="Grafana template edit" />
+    
+    
+</figure>
+
+
+<p>More detailed manual about templating could be found in the <a href="http://docs.grafana.org/reference/templating/">docs</a></p>
+
+<p>Now, when we have our node variable, with all servers in it, we can add some graphs.</p>
+
+<p><strong>CPU usage</strong></p>
+
+<p>
+<figure class="image left">
+    
+        <img src="../../img/2017/06/newrelic_cpu_usage.png" alt="NewRelic CPU usage" width="49%" />
+    
+    
+</figure>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/grafana_cpu_usage.png" alt="Grafana CPU usage" width="49%" />
+    
+    
+</figure>
+</p>
+
+<p><br /></p>
+
+<p>Let’s walk through creating of this one in details.
+To build this graph we need 4 queries, all using <code>node_cpu</code> metric from node-exporter. Here are the queries.</p>
+
+<pre><code>system: (avg by (instance) (irate(node_cpu{instance=~&quot;$node:.*&quot;,mode=~&quot;system|irq|softirq&quot;}[5m])) * 100)
+user: (avg by (instance) (irate(node_cpu{instance=~&quot;$node:.*&quot;,mode=&quot;user&quot;}[5m])) * 100)
+iowait: (avg by (instance) (irate(node_cpu{instance=~&quot;$node:.*&quot;,mode=&quot;iowait&quot;}[5m])) * 100)
+idle: (avg by (instance) (irate(node_cpu{instance=~&quot;$node:.*&quot;,mode=&quot;idle&quot;}[5m])) * 100)
+</code></pre>
+
+<p>All these queries differ only by the mode filter, so let’s look only at the first one - system.
+What is happening here: <em>node_cpu</em> metric is filtered by instance using our previous template variable and by mode. Since it is counters we need to use irate(rate) function to calculate the per-second rate. This will produce the list of results, one for each CPU/core on the machine, so we need to aggregate it to get a single per-node value. At the end, we need to multiply it by 100 to get percents of the total load.</p>
+
+<p>Here is a good article about the <a href="https://www.robustperception.io/irate-graphs-are-better-graphs/">rate vs irate</a> difference and <a href="https://www.robustperception.io/understanding-machine-cpu-usage/">this one</a> is about CPU usage calculation.</p>
+
+<p><strong>SystemLoad</strong></p>
+
+<p>
+<figure class="image left">
+    
+        <img src="../../img/2017/06/newrelic_load_average.png" alt="NewRelic Load Average" width="49%" />
+    
+    
+</figure>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/grafana_load_average.png" alt="Grafana Load Average" width="49%" />
+    
+    
+</figure>
+</p>
+
+<pre><code>load5: node_load5{instance=~&quot;$node:.*&quot;}
+</code></pre>
+
+<p><strong>Memory</strong></p>
+
+<p>
+<figure class="image left">
+    
+        <img src="../../img/2017/06/newrelic_memory.png" alt="NewRelic Memory" width="49%" />
+    
+    
+</figure>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/grafana_memory.png" alt="Grafana Memory" width="49%" />
+    
+    
+</figure>
+</p>
+
+<pre><code>total: node_memory_MemTotal{instance=~&quot;$node:.*&quot;}
+used: node_memory_MemTotal{instance=~&quot;$node:.*&quot;} - node_memory_MemFree{instance=~&quot;$node:.*&quot;} - node_memory_Cached{instance=~&quot;$node:.*&quot;} - node_memory_Buffers{instance=~&quot;$node:.*&quot;} - node_memory_Slab{instance=~&quot;$node:.*&quot;}
+swap: (node_memory_SwapTotal{instance=~&quot;$node:.*&quot;} - node_memory_SwapFree{instance=~&quot;$node:.*&quot;})
+</code></pre>
+
+<p><strong>Network I/O</strong></p>
+
+<p>
+<figure class="image left">
+    
+        <img src="../../img/2017/06/newrelic_network.png" alt="NewRelic Network" width="49%" />
+    
+    
+</figure>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/grafana_network.png" alt="Grafana Network" width="49%" />
+    
+    
+</figure>
+</p>
+
+<pre><code>received: sum(irate(node_network_receive_bytes{instance=~&quot;$node.*&quot;}[5m]))
+transmitted: sum(irate(node_network_transmit_bytes{instance=~&quot;$node.*&quot;}[5m]))
+</code></pre>
+
+<p><strong>Disk I/O</strong></p>
+
+<p>
+<figure class="image left">
+    
+        <img src="../../img/2017/06/newrelic_disk_io.png" alt="NewRelic DiskIO" width="49%" />
+    
+    
+</figure>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/grafana_disk_io.png" alt="Grafana DiskIO" width="49%" />
+    
+    
+</figure>
+</p>
+
+<pre><code>read_by_device: irate(node_disk_reads_completed{instance=~&quot;$node:.*&quot;, device!~&quot;dm-.*&quot;}[5m])
+write_by_device: irate(node_disk_writes_completed{instance=~&quot;$node:.*&quot;, device!~&quot;dm-.*&quot;}[5m])
+</code></pre>
+
+<p><strong>Top 10 memory hungry pods</strong></p>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/grafana_top10_memory.png" alt="Grafana Top 10 memory hungry PODs" />
+    
+    
+</figure>
+
+
+<p>For this graph, we’re going to use two new functions - <strong>sort_desc</strong> and <strong>topk</strong>.
+<code>topk</code> is used to limit results, while <code>sort_desc</code> is to sort it.
+<code>by (pod_name)</code> - will group results by pod_name</p>
+
+<pre><code>metrics: sort_desc(topk(10, sum(container_memory_usage_bytes{pod_name!=&quot;&quot;}) by (pod_name)))
+</code></pre>
+
+<p><strong>Top 10 CPU hungry pods</strong></p>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/grafana_top10_cpu.png" alt="Grafana Top 10 CPU hungry PODs" />
+    
+    
+</figure>
+
+
+<pre><code>metrics: sort_desc(topk(10, sum by (pod_name)( rate(container_cpu_usage_seconds_total{pod_name!=&quot;&quot;}[1m] ) )))
+</code></pre>
+
+<h2 id="node-overview">Node overview</h2>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/grafana_node_overview.png" alt="Grafana Node overview" />
+    
+    
+</figure>
+
+
+<p>This row is a bit different from all the others. While all previous stats were using Graph type, here we&rsquo;re going to use Singlestats **and Table.</p>
+
+<p><strong>Total RAM:</strong></p>
+
+<pre><code>type: singlestat
+metrics: node_memory_MemTotal{instance=~&quot;$node:.*&quot;}
+options: stat=current, unit=bytes, decimals=1
+</code></pre>
+
+<p><strong>CPU cores:</strong></p>
+
+<pre><code>type: singlestat
+metrics: count(count(node_cpu{instance=~&quot;$node:.*&quot;}) by (cpu))
+</code></pre>
+
+<p><strong>Uptime:</strong></p>
+
+<pre><code>type: singlestat
+metrics: node_time{instance=~&quot;$node:.*&quot;} - node_boot_time{instance=~&quot;$node:.*&quot;}
+options: stat=current, unit=seconds, decimals=1
+</code></pre>
+
+<p><strong>Disk Space Usage:</strong></p>
+
+<pre><code>type: singlestat
+metrics: sum((node_filesystem_size{instance=~&quot;$node:.*&quot;,mountpoint=&quot;/rootfs&quot;} - node_filesystem_free{instance=~&quot;$node:.*&quot;,mountpoint=&quot;/rootfs&quot;}) / node_filesystem_size{instance=~&quot;$node:.*&quot;,mountpoint=&quot;/rootfs&quot;}) * 100
+</code></pre>
+
+<p><strong>FileSystem Fill Up Time</strong></p>
+
+
+<figure >
+    
+        <img src="../../img/2017/06/grafana_disk_fill_prediction.png" alt="Grafana Disk fill prediction" />
+    
+    
+</figure>
+
+
+<p>This one is a bit more sophisticated. It uses simple linear regression to predict time until disks fill up.
+We’re using <code>avg by (device)</code> to show each device only once, otherwise, we will have one line for each mountpoint.</p>
+
+<pre><code>type: table
+metrics: avg by (device) (deriv(node_filesystem_free{device=~&quot;/dev/sd.*&quot;,instance=~&quot;$node:.*&quot;}[4h]) &gt; 0)
+</code></pre>
+
+<blockquote>
+<p>In case you only have 3 mountpoints (/etc/hosts, /etc/hostsname, /etc/resolv.conf) exposed by node-exporter - double check that your node-exporter pods have all the rootfs directories mounted. As stated <a href="https://github.com/prometheus/node_exporter/blob/master/README.md#using-docker">here</a>.</p>
+</blockquote>
+
+<h1 id="wrap-up">Wrap up</h1>
+
+<p>That’s it. Now we have a node overview dashboard which shows all the basic information available in NewRelic server view. As a bonus, we’ve got disk fullness prediction and information about most RAM/CPU hungry pods.
+Source of this dashboard is available on <a href="https://github.com/lwolf/kube-monitoring/blob/master/dashboards/server-overview.json">GitHub</a>.</p>
+
+<p>Stay tuned.</p>
+
+    </div>
+
+    <div>
+        <hr/>
+        <b>Like this post?</b> Want more? <a href="http://eepurl.com/cdUha1"><b><u>Subscribe</u></b></a> to get updates delivered straight to your inbox.
+        <hr/>
+    </div>
+    <footer>
+        <ul class="stats">
+    
+        
+
+        
+        
+            <li>
+                
+                
+                    
+
+                    
+                    
+
+                    
+
+                    
+                        Categories
+                    
+                
+            </li>
+        
+    
+
+    
+    
+        <li><a href='../../categories/docker'>docker</a></li>
+    
+        <li><a href='../../categories/infrastructure'>infrastructure</a></li>
+    
+        <li><a href='../../categories/kubernetes'>kubernetes</a></li>
+    
+        <li><a href='../../categories/monitoring'>monitoring</a></li>
+    
+        <li><a href='../../categories/prometheus'>prometheus</a></li>
+    
+</ul>
+
+    </footer>
+</article>
+<ul class="actions pagination">
+    
+        <li><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"
+                class="button big previous">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></li>
+    
+
+    
+</ul>
+
+
+
+    
+        <article class="post">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'blog-lwolf';
+    var disqus_identifier = 'http:\/\/blog.lwolf.org\/post\/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana\/';
+    var disqus_title = 'Going open-source in monitoring, part II: Creating the first dashboard in Grafana';
+    var disqus_url = 'http:\/\/blog.lwolf.org\/post\/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </article>
+    
+
+
+    </div>
+    
+<section id="sidebar">
+
+    
+        <section id="intro">
+            
+            
+                
+                    <a href="../../" class="logo"><img src="../../img/author.jpg" alt="Hugo Future Imperfect" /></a>
+                
+            
+            
+                <header>
+                    <h2>LWOLFS BLOG</h2>
+                    <p>Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc</p>
+                </header>
+            
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+        </section>
+
+    
+        <section id="recent-posts">
+            <ul class="posts">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-06-19'>
+                                    June 19, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-29'>
+                                    May 29, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/">Going open-source in monitoring, part 0: Intro</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-12'>
+                                    May 12, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/">How to recover data from broken GlusterFS cluster</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-31'>
+                                    March 31, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-30'>
+                                    March 30, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+
+                
+                    <li>
+                        <ul class="actions">
+                            <li><a href=
+                            
+                                /post/
+                            
+                            class="button">View more posts</a></li>
+                        </ul>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+    
+    
+    
+        <section id="categories">
+            <ul class="posts">
+                <header>
+                    <h3><a href="../../categories/">Categories</a></h3>
+                </header>
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/docker/">docker</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/infrastructure/">infrastructure</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/kubernetes/">kubernetes</a>
+                                <span style="float:right;">17</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/k8s/">k8s</a>
+                                <span style="float:right;">13</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/devops/">devops</a>
+                                <span style="float:right;">10</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ci/cd/">ci/cd</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/gitlab/">gitlab</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coding/">coding</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/monitoring/">monitoring</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/prometheus/">prometheus</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coreos/">coreos</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/glusterfs/">glusterfs</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/letsencrypt/">letsencrypt</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">python</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ssl/">ssl</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/storage/">storage</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/faas/">FaaS</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">Python</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/architecture/">architecture</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/golang/">golang</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/high-availability/">high-availability</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/nginx/">nginx</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/postgresql/">postgresql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/serverless/">serverless</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/sql/">sql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+            </ul>
+        </section>
+    
+
+    
+        
+        <section class="blurb">
+            <h2>About</h2>
+            <p>Some about me text...</p>
+
+            <ul class="actions">
+                <li><a href="../../about/" class="button">Learn More</a></li>
+            </ul>
+        </section>
+        
+
+    
+        <section id="footer">
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+
+            <p class="copyright">&copy; lwolfs blog. Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a>. Ported by <a href="//github.com/jpescador" target="_blank">Julio Pescador</a>. Powered by <a href="//gohugo.io" target="_blank">Hugo</a></p>
+        </section>
+
+</section>
+
+            </div>
+        <a id="back-to-top" href="#" class="fa fa-arrow-up fa-border fa-2x"></a>
+        
+
+        
+        
+            
+        
+
+        
+        
+            <script src="../../js/jquery.min.js"></script>
+            <script src="../../js/skel.min.js"></script>
+            <script src="../../js/util.js"></script>
+            <script src="../../js/main.js"></script>
+            <script src="../../js/backToTop.js"></script>
+            <script src="../../js/highlight.pack.js"></script>
+        
+
+        
+
+            
+            <script>hljs.initHighlightingOnLoad();</script>
+            
+
+            
+            <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-538070ba29aaa8d5"></script>
+
+    </body>
+</html>
+

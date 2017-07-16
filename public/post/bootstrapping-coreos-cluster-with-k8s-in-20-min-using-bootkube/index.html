@@ -1,0 +1,1421 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        
+            
+                <title>Bootstrapping CoreOS cluster with Kubernetes in 20 minutes using coreos-baremental and bootkube</title>
+            
+        
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content="Hugo 0.24.1" />
+        
+
+
+        
+            <meta name="author" content="Sergey Nuzhdin">
+        
+        
+            <meta name="description" content="Configuring bootcfg and dnsmasq for quick bootstrap of CoreOS cluster on baremetal servers. Install k8s using bootkube.">
+        
+
+        
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="Bootstrapping CoreOS cluster with Kubernetes in 20 minutes using coreos-baremental and bootkube"/>
+<meta name="twitter:title" content="Bootstrapping CoreOS cluster with Kubernetes in 20 minutes using coreos-baremental and bootkube"/>
+<meta name="twitter:description" content="Configuring bootcfg and dnsmasq for quick bootstrap of CoreOS cluster on baremetal servers. Install k8s using bootkube."/>
+
+
+        <meta property="og:title" content="Bootstrapping CoreOS cluster with Kubernetes in 20 minutes using coreos-baremental and bootkube" />
+<meta property="og:description" content="Configuring bootcfg and dnsmasq for quick bootstrap of CoreOS cluster on baremetal servers. Install k8s using bootkube." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://blog.lwolf.org/post/bootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube/" />
+
+
+
+<meta property="article:published_time" content="2016-08-22T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2016-08-22T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+        
+<meta itemprop="name" content="Bootstrapping CoreOS cluster with Kubernetes in 20 minutes using coreos-baremental and bootkube">
+<meta itemprop="description" content="Configuring bootcfg and dnsmasq for quick bootstrap of CoreOS cluster on baremetal servers. Install k8s using bootkube.">
+
+
+<meta itemprop="dateModified" content="2016-08-22T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="1876">
+
+
+
+<meta itemprop="keywords" content="FaaS,Python,architecture,ci/cd,coding,coreos,devops,docker,gitlab,glusterfs,golang,high-availability,infrastructure,k8s,kubernetes,letsencrypt,monitoring,nginx,postgresql,prometheus,python,serverless,sql,ssl,storage," />
+
+        
+
+        
+
+        
+        
+            
+        
+
+        
+        
+            <link rel="stylesheet" href="../../css/google-font.css" />
+            <link rel="stylesheet" href="../../css/font-awesome.min.css" />
+            <link rel="stylesheet" href="../../css/main.css" />
+            <link rel="stylesheet" href="../../css/add-on.css" />
+            <link rel="stylesheet" href="../../css/monokai-sublime.css">
+        
+
+        
+
+        
+        
+        
+            
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47060494-2', 'auto');
+ga('send', 'pageview');
+</script>
+
+        
+    </head>
+    <body>
+
+        
+        <div id="wrapper">
+
+    
+    
+<header id="header">
+    
+        <h2><a href="../../">lwolfs blog</i></a></h2>
+    
+
+    <nav class="links">
+        <ul>
+            
+                <li>
+                    <a href="../../post">
+                        
+                            <i class="fa fa-newspaper-o">&nbsp;</i>Posts
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../categories">
+                        Categories
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../about">
+                        About
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="http://eepurl.com/cdUha1">
+                        Subscribe
+                    </a>
+                </li>
+            
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            
+            <li id="share-nav" class="share-menu" style="display:none;">
+                <a class="fa-share-alt" href="#share-menu">Share</a>
+            </li>
+            
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="//google.com/search">
+                    <input type="text" name="q" placeholder="Search" />
+                    <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+<section id="menu">
+
+    
+        <section>
+            <form class="search" method="get" action="//google.com/search">
+                <input type="text" name="q" placeholder="Search" />
+                <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+            </form>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                
+                    <li>
+                        <a href="../../post">
+                            <h3>
+                                
+                                    <i class="fa fa-newspaper-o">&nbsp;</i>
+                                
+                                Posts
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../categories">
+                            <h3>
+                                
+                                Categories
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../about">
+                            <h3>
+                                
+                                About
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="http://eepurl.com/cdUha1">
+                            <h3>
+                                
+                                Subscribe
+                            </h3>
+                        </a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/"><p>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"><p>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/"><p>Going open-source in monitoring, part 0: Intro</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"><p>How to recover data from broken GlusterFS cluster</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/"><p>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</p></a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        
+</section>
+
+    <section id="share-menu">
+    <section id="social-share-nav">
+        <ul class="links">
+            <header>
+                <h3>Share this post <i class="fa fa-smile-o"></i></h3>
+            </header>
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f&text=Bootstrapping%20CoreOS%20cluster%20with%20Kubernetes%20in%2020%20minutes%20using%20coreos-baremental%20and%20bootkube&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f&title=Bootstrapping%20CoreOS%20cluster%20with%20Kubernetes%20in%2020%20minutes%20using%20coreos-baremental%20and%20bootkube" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f&title=Bootstrapping%20CoreOS%20cluster%20with%20Kubernetes%20in%2020%20minutes%20using%20coreos-baremental%20and%20bootkube" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f&title=Bootstrapping%20CoreOS%20cluster%20with%20Kubernetes%20in%2020%20minutes%20using%20coreos-baremental%20and%20bootkube" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+</section>
+
+    
+    <div id="main">
+        
+        
+        <article class="post">
+    <header>
+    <div class="title">
+        
+            <h1><a href="http://blog.lwolf.org/post/bootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube/">Bootstrapping CoreOS cluster with Kubernetes in 20 minutes using coreos-baremental and bootkube</a></h1>
+            
+        
+        
+            <p>Configuring bootcfg and dnsmasq for quick bootstrap of CoreOS cluster on baremetal servers. Install k8s using bootkube.</p>
+        
+    </div>
+    <div class="meta">
+        
+            
+        
+
+        <time class="published"
+            datetime='2016-08-22'>
+            August 22, 2016</time>
+        <span class="author">Sergey Nuzhdin</span>
+        
+            <p>9 minute read</p>
+        
+        
+    </div>
+</header>
+
+
+    <section id="social-share">
+        <ul class="icons">
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f&text=Bootstrapping%20CoreOS%20cluster%20with%20Kubernetes%20in%2020%20minutes%20using%20coreos-baremental%20and%20bootkube&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f&title=Bootstrapping%20CoreOS%20cluster%20with%20Kubernetes%20in%2020%20minutes%20using%20coreos-baremental%20and%20bootkube" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f&title=Bootstrapping%20CoreOS%20cluster%20with%20Kubernetes%20in%2020%20minutes%20using%20coreos-baremental%20and%20bootkube" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f&title=Bootstrapping%20CoreOS%20cluster%20with%20Kubernetes%20in%2020%20minutes%20using%20coreos-baremental%20and%20bootkube" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fbootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+    
+    
+
+    
+        
+        
+
+
+
+
+    
+    
+        
+    
+
+
+        
+
+        <a href="http://blog.lwolf.org/post/bootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube/" class="image featured">
+            <img src="../../img/2016/08/coreos-baremetal.png" alt="" />
+        </a>
+    
+
+
+    <div id="content">
+        
+
+<p>It&rsquo;s 4 months now since I migrated my infrastructure to CoreOS and Kubernetes.
+Now I can say that this was the right decision. Or, even, the best thing that happened to my servers :).</p>
+
+<p>Of course, there were some problems during this period, but mostly because of some misconfiguration from my side.
+Also, there was no single downtime because of infrastructure.</p>
+
+<p>My original <a href="../../post/migrate-infrastructure-to-kubernetes-building-baremetal-cluster/">post</a> was very long and compicated.
+Actually, even I don&rsquo;t want to reproduce all of this stuff ever again. That&rsquo;s why, since I wrote that post and did all that steps,
+I was thinking how to improve and automate that process. I wanted to have some service which will give you iPXE/TFTP/DHCP services out of the box.
+And it should be possible to configure everything with just a few configs.<br/> I liked the idea of Kelsey Hightower&rsquo;s <a href="https://github.com/kelseyhightower/coreos-ipxe-server">coreos-ipxe-server</a>.
+Which was not exactly what I wanted, but still much better that managing all this stuff manually.
+I was thinking about using it for my next baremetal installation.</p>
+
+<!-- more -->
+
+<p>A few weeks ago I discovered <a href="https://github.com/coreos/bootkube">bootkube project</a>.</p>
+
+<blockquote>
+<p>Bootkube is a helper tool for launching self-hosted Kubernetes clusters.</p>
+
+<p>When launched, bootkube will act as a temporary Kubernetes control-plane (api-server, scheduler, controller-manager), which operates long enough to bootstrap a replacement self-hosted control-plane.</p>
+</blockquote>
+
+<p>In other words bootkube will use temprorary kubernetes instance to deploy new cluster using kubernetes objects like deployments,pods,configmaps.
+And since all it&rsquo;s components are k8s objects it will be able to scale/update/heal itself. And of course it will be much easier to upgrade cluster to new versions.</p>
+
+<p>I found the idea of self-hosted Kubernetes very exciting. So exciting that I wanted to try it as soon as possible.
+Fortunately, about the same time I realized that I do not use even <sup>1</sup>&frasl;<sub>10</sub> of resources I have in my new <a href="https://www.supermicro.com/products/system/midtower/5028/SYS-5028D-TN4T.cfm">home server</a>.
+I was planning to deploy Kubernetes there to manage all containers anyways, so, it was a perfect match.</p>
+
+<p>Since I didn&rsquo;t want to do baremetal provisioning manually again, I spent weekend researching nicer ways of provisioning baremetal.
+And I found the great solution - <a href="https://github.com/coreos/coreos-baremetal">coreos-baremetal</a>, from CoreOS team itself.
+It&rsquo;s built with all the pain points of provisioning baremetal servers using network boot in mind:</p>
+
+<ul>
+<li>it&rsquo;s a single binary/container</li>
+<li>it can work as DHCP or DHCP-proxy server</li>
+<li>it can provide DNS</li>
+<li>it supports TFTP and iPXE boot</li>
+</ul>
+
+<p>After you figured everything out it really takes about 20 minutes to bootstrap CoreOS cluster.
+But I found documentation a bit fragmented, so I decided to write this short step-by-step tutorial.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<p>I&rsquo;m going to use 3 already created ESXi virtual machines to build CoreOS cluster.<br/>
+I know mac addresses of this machines upfront. <br/>
+I&rsquo;m going to do all steps from VM #4 (Ubuntu based), but any other machine could be used,
+ even a laptop connected to the same network. </br>
+I&rsquo;m going to use dns zone example.com and ip addresses 192.168.1.* in this tutorial. </br>
+Interget gateway is 192.168.1.254 and ubuntu-based VM is 192.168.1.250</p>
+
+<h2 id="running-dnsmasq-as-dhcp-dns-ipxe-server">Running dnsmasq as DHCP/DNS/iPXE server</h2>
+
+<p>Let&rsquo;s start with <a href="https://github.com/coreos/coreos-baremetal/tree/master/contrib/dnsmasq">dnsmasq</a>.
+Dnsmasq is one of two services which form coreos-baremetal service.
+Dnsmasq is a daemon which provides you an easy way to run everything you need for a network boot.</p>
+
+<blockquote>
+<p>dnsmasq provides an App Container Image (ACI) or Docker image for running DHCP, proxy DHCP, DNS, and/or TFTP with dnsmasq in a container/pod. Use it to test different network setups with clusters of network bootable machines.</p>
+
+<p>The image bundles undionly.kpxe which chainloads PXE clients to iPXE and grub.efi (experimental) which chainloads UEFI architectures to GRUB2.</p>
+</blockquote>
+
+<p>To run dnsmasq we need to write a config file first. Let&rsquo;s create a new <code>dnsmasq.conf</code></p>
+
+<pre><code class="language-ini">domain-needed
+bogus-priv
+
+domain=example.com
+expand-hosts
+local=/example.com/
+
+listen-address=127.0.0.1
+listen-address=192.168.1.250
+bind-interfaces
+
+dhcp-range=lan,192.168.1.1,192.168.1.100
+
+# set default gateway
+dhcp-option=lan,3,192.168.1.254
+
+# set DNS server to this machine
+dhcp-option=lan,6,192.168.1.250
+
+dhcp-userclass=set:ipxe,iPXE
+
+server=8.8.8.8
+
+enable-tftp
+tftp-root=/var/lib/tftpboot
+
+pxe-service=tag:#ipxe,x86PC,&quot;PXE chainload to iPXE&quot;,undionly.kpxe
+pxe-service=tag:ipxe,x86PC,&quot;iPXE&quot;,http://bootcfg.example.com:8080/boot.ipxe
+
+# add resolving to the host
+address=/bootcfg.example.com/192.168.1.250
+
+# assign hostname and ip address to the nodes
+dhcp-host=00:01:23:45:67:89,node1,192.168.1.21,infinite
+dhcp-host=00:02:34:56:78:90,node1,192.168.1.22,infinite
+dhcp-host=00:03:45:67:89:01,node1,192.168.1.23,infinite
+
+
+log-queries
+log-dhcp
+
+</code></pre>
+
+<p><code>domain-needed</code> - never pass short names to the upstream DNS servers. If the name is not in the local /etc/hosts file then “not found” will be returned. <br/>
+<code>bogus-priv</code> - reverse IP (192.168.x.x) lookups that are not found in /etc/hosts will be returned as “no such domain” and not forwarded to the upstream servers. <br/>
+<code>no-resolv</code> - do not read resolv.conf to find the servers where to lookup dns. <br/>
+<code>no-poll</code> - do not poll resolv.conf for changes <br/>
+<code>dhcp-range</code> - range of IPs that DHCP will serve. proxy means that it will not give IP addresses, but only provide additional services. <br/>
+<code>enable-tftp</code> - as it says, enable TFTP <br/>
+<code>tftp-root</code> - location of tftp files that will be served <br/>
+<code>dhcp-userclass</code> - assign tags based on client classes <br/>
+<code>pxe-service</code> - configure pxe boot instructions <br/>
+<code>log-queries</code> - logging <br/>
+<code>log-dhcp</code> - logging <br/></p>
+
+<p>You can read more about configuration in <a href="http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html">dnsmasq-man</a></p>
+
+<p>Now we need to configure our TFTP.</p>
+
+<pre><code>$ mkdir tftpboot
+$ cd tftpboot
+$ wget http://boot.ipxe.org/undionly.kpxe
+$ cp undionly.kpxe undionly.kpxe.0
+$ wget http://boot.salstar.sk/ipxe/ipxe.lkrn
+$ mkdir pxelinux.cfg
+
+$ cat &gt; pxelinux.cfg/default &lt;&lt;EOF
+timeout 10
+default iPXE
+LABEL iPXE
+KERNEL ipxe.lkrn
+APPEND dhcp &amp;&amp; chain http://bootcfg.example.com:8080/boot.ipxe
+EOF
+
+</code></pre>
+
+<p>Now, if we run a dnsmasq container with this config, we will have DHCP server for the network 192.168.1.*,
+with DNS, TFTP and instructions to forward iPXE clients to 192.168.1.250:8080 - IP of the machine running bootcfg, which we will configure next.</p>
+
+<pre><code>docker run -d \
+    --cap-add=NET_ADMIN \
+    --net=host \
+    -v $PWD/tftpboot:/var/lib/tftpboot \
+    -v $PWD/dnsmasq.conf:/etc/dnsmasq.conf \
+    quay.io/coreos/dnsmasq -d -q
+</code></pre>
+
+<h2 id="configuring-and-running-bootcfg-for-network-provisioning">Configuring and running bootcfg for network provisioning</h2>
+
+<p>Now we need to run <a href="https://github.com/coreos/coreos-baremetal/blob/master/Documentation/bootcfg.md">bootcfg</a>.</p>
+
+<blockquote>
+<p>bootcfg is an HTTP and gRPC service that renders signed Ignition configs, cloud-configs, network boot configs, and metadata to machines to create CoreOS clusters. bootcfg maintains Group definitions which match machines to profiles based on labels (e.g. MAC address, UUID, stage, region). A Profile is a named set of config templates (e.g. iPXE, GRUB, Ignition config, Cloud-Config, generic configs). The aim is to use CoreOS Linux&rsquo;s early-boot capabilities to provision CoreOS machines.</p>
+</blockquote>
+
+<p>As said in the official description - it&rsquo;s the service to actually provision servers with different configs based on metadata.</p>
+
+<p>Lets clone <a href="https://github.com/coreos/coreos-baremetal">coreos-baremetal</a> repository.
+We will need only examples directory from it.</p>
+
+<pre><code class="language-bash">$ git clone https://github.com/coreos/coreos-baremetal
+# Make a copy of example files
+$ cp -R coreos-baremetal/examples .
+# Download the CoreOS image assets referenced in the target profile.
+$ ./coreos-baremetal/scripts/get-coreos alpha 1109.1.0 ./examples/assets
+</code></pre>
+
+<p>At this point, we need to decide on the roles we want our servers to have.
+You can choose from available example groups inside the <code>examples/groups</code> or write your own.</p>
+
+<pre><code>&gt; $ tree examples/groups
+examples/groups
+├── bootkube
+├── bootkube-install
+├── etcd
+├── etcd-aws
+├── etcd-install
+├── grub
+├── k8s
+├── k8s-install
+├── pxe
+├── pxe-disk
+└── torus
+</code></pre>
+
+<p>Before continuing, let&rsquo;s try if everything works.
+Run bootcfg container with <code>-v $PWD/examples/groups/etcd:/var/lib/bootcfg/groups:Z \</code> to boot machines with etcd running.</p>
+
+<pre><code>$ docker run -p 8080:8080 -d \
+    -v $PWD/examples:/var/lib/bootcfg:Z \
+    -v $PWD/examples/groups/etcd:/var/lib/bootcfg/groups:Z \
+    quay.io/coreos/bootcfg:v0.4.0 -address=0.0.0.0:8080 -log-level=debug
+</code></pre>
+
+<p>Reboot machines you&rsquo;re going to provision. Machines should boot from PXE, get configuration from bootcfg and start CoreOS.
+Since we didn&rsquo;t change anything in provision configs, default one should be served.</p>
+
+<pre><code># examples/groups/etcd/default.json
+{
+  &quot;id&quot;: &quot;default&quot;,
+  &quot;name&quot;: &quot;default&quot;,
+  &quot;profile&quot;: &quot;etcd-proxy&quot;,
+  &quot;metadata&quot;: {
+    &quot;etcd_initial_cluster&quot;: &quot;node1=http://node1.example.com:2380,node2=http://node2.example.com:2380,node3=http://node3.example.com:2380&quot;
+  }
+}
+
+</code></pre>
+
+<p>It&rsquo;s ok, but we want to have persistent Kubernetes cluster.
+So, let&rsquo;s change some configs.</p>
+
+<p>Files we&rsquo;re going to use are located in <code>examples/groups/bootkube-install</code></p>
+
+<p>First of all lets replace some of the variables:</p>
+
+<pre><code># We need to change all occurrences of `bootcfg.foo` to `bootcfg.example.com`
+$ find examples/ -type f -print0 | xargs -0 sed -i -e 's/bootcfg.foo/bootcfg.example.com/g'
+
+# Replace IP network from default to ours `192.168.1.*`
+$ find examples/ -type f -print0 | xargs -0 sed -i -e 's/172.15.0./192.168.1./g'
+
+</code></pre>
+
+<p>And second, we need to add our ssh keys and corresponding MAC addresses to node1.json, node2.json, and node3.json.
+Here is the content of node1.json file after changes we made so far with <code>sed</code>:</p>
+
+<pre><code>{
+  &quot;id&quot;: &quot;node1&quot;,
+  &quot;name&quot;: &quot;Master Node&quot;,
+  &quot;profile&quot;: &quot;bootkube-master&quot;,
+  &quot;selector&quot;: {
+    &quot;mac&quot;: &quot;52:54:00:a1:9c:ae&quot;,
+    &quot;os&quot;: &quot;installed&quot;
+  },
+  &quot;metadata&quot;: {
+    &quot;ipv4_address&quot;: &quot;192.168.1.21&quot;,
+    &quot;etcd_initial_cluster&quot;: &quot;node1=http://192.168.1.21:2380,node2=http://192.168.1.22:2380,node3=http://192.168.1.23:2380&quot;,
+    &quot;etcd_name&quot;: &quot;node1&quot;,
+    &quot;k8s_dns_service_ip&quot;: &quot;10.3.0.10&quot;,
+    &quot;k8s_master_endpoint&quot;: &quot;https://192.168.1.21:443&quot;,
+    &quot;k8s_pod_network&quot;: &quot;10.2.0.0/16&quot;,
+    &quot;k8s_service_ip_range&quot;: &quot;10.3.0.0/24&quot;,
+    &quot;k8s_etcd_endpoints&quot;: &quot;http://192.168.1.21:2379,http://192.168.1.22:2379,http://192.168.1.23:2379&quot;,
+    &quot;networkd_address&quot;: &quot;192.168.1.21/16&quot;,
+    &quot;networkd_dns&quot;: &quot;192.168.1.250&quot;,
+    &quot;networkd_gateway&quot;: &quot;192.168.1.254&quot;,
+    &quot;ssh_authorized_keys&quot;: [
+      &quot;ADD ME&quot;
+    ]
+  }
+}
+</code></pre>
+
+<p>We need to change mac address and check that DNS server and gateway is correctly set and add ssh public key.
+Do it for all 3 configs. Also you need to change etcd cluster info to use dns names instead of ip addresses:</p>
+
+<pre><code>&quot;etcd_initial_cluster&quot;: &quot;node1=http://node1.example.com:2380,node2=http://node2.example.com:2380,node3=http://node3.example.com:2380&quot;,
+&quot;k8s_etcd_endpoints&quot;: &quot;http://node1.example.com:2379,http://node2.example.com:2379,http://node3.example.com:2379&quot;,
+</code></pre>
+
+<p>That&rsquo;s basically it. Now stop any previously running bootcfg containers and start
+the new one with <code>examples/groups/bootkube-install</code> as volume:</p>
+
+<pre><code>$ docker run -p 8080:8080 -d \
+    -v $PWD/examples:/var/lib/bootcfg:Z \
+    -v $PWD/examples/groups/bootkube-install:/var/lib/bootcfg/groups:Z \
+    quay.io/coreos/bootcfg:v0.4.0 -address=0.0.0.0:8080 -log-level=debug
+
+</code></pre>
+
+<p>Now, when you restart your machines, they will boot basic CoreOS image and then install it on the disk.
+It will take just a few minutes, and you can see progress on each machine with <code>journalctl -f</code></p>
+
+<p>After the installation, boxes will reboot and you will be able to ssh to it using your key.</p>
+
+<p>At this stage, you have 3 machines with CoreOS installed on disk and hopefully healthy etcd cluster.
+You can check it from any node with:</p>
+
+<pre><code>core@localhost ~ $ etcdctl cluster-health
+member 804d94c1234cb453 is healthy: got healthy result from http://192.168.1.21:2379
+member a2f761234a47b2fb is healthy: got healthy result from http://192.168.1.23:2379
+member e30ed10dc12349c9 is healthy: got healthy result from http://192.168.1.22:2379
+cluster is healthy
+</code></pre>
+
+<h2 id="bootkube">Bootkube</h2>
+
+<p>Now we are ready to use bootkube to bootstrap temporary k8s control plane which will deploy our k8s cluster.
+Download the <a href="https://github.com/coreos/bootkube/releases/download/v0.1.4/bootkube.tar.gz">latest(v0.1.4)</a> from <a href="https://github.com/coreos/bootkube/releases">github</a>.
+Unzip it and run it with render argument.</p>
+
+<pre><code>bootkube render --asset-dir=assets --api-servers=https://192.168.1.21:443 --etcd-servers=http://192.168.1.21:2379 --api-server-alt-names=IP=192.168.1.21
+</code></pre>
+
+<p>You will get all needed manifests and SSL keys to deploy k8s.</p>
+
+<pre><code># Now secure copy the kubeconfig to /etc/kuberentes/kubeconfig on every node
+$ scp assets/auth/kubeconfig core@192.168.1.21:/home/core/kubeconfig
+$ ssh core@192.168.1.21
+$ sudo mv kubeconfig /etc/kubernetes/kubeconfig
+
+# Secure copy the bootkube generated assets to any one of the master nodes.
+$ scp -r assets core@192.168.1.21:/home/core/assets
+
+# SSH to the chosen master node and bootstrap the cluster with bootkube-start
+$ ssh core@192.168.1.21
+$ sudo ./bootkube-start
+</code></pre>
+
+<p>In case you&rsquo;ll get error saying that <code>bootkube-start</code> cannot be found, do:</p>
+
+<pre><code>$ cd /{YOUR_DOMAIN}/core/
+$ sudo cp -R /home/core/assets .
+$ sudo ./bootkube-start
+</code></pre>
+
+<p>That&rsquo;s it. Sit and watch <code>journalctl -f</code> until you&rsquo;ll see something like this:</p>
+
+<pre><code>I0425 12:38:23.746330   29538 status.go:87] Pod status kubelet: Running
+I0425 12:38:23.746361   29538 status.go:87] Pod status kube-apiserver: Running
+I0425 12:38:23.746370   29538 status.go:87] Pod status kube-scheduler: Running
+I0425 12:38:23.746378   29538 status.go:87] Pod status kube-controller-manager: Running
+</code></pre>
+
+<h2 id="verify">Verify</h2>
+
+<p>This part is just copied from original <a href="https://github.com/coreos/coreos-baremetal/blob/master/Documentation/bootkube.md#verify">readme</a></p>
+
+<p><a href="https://coreos.com/kubernetes/docs/latest/configure-kubectl.html">Install kubectl</a> on your laptop. Use the generated kubeconfig to access the Kubernetes cluster.
+Verify that the cluster is accessible and that the kubelet, apiserver, scheduler, and controller-manager are running as pods.</p>
+
+<pre><code>$ kubectl --kubeconfig=assets/auth/kubeconfig get nodes
+NAME          STATUS    AGE
+192.168.1.21   Ready     3m
+192.168.1.22   Ready     3m
+192.168.1.23   Ready     3m
+
+$ kubectl --kubeconfig=assets/auth/kubeconfig get pods --all-namespaces
+kube-system   kube-api-checkpoint-192.168.1.21           1/1       Running   0          2m
+kube-system   kube-apiserver-wq4mh                       2/2       Running   0          2m
+kube-system   kube-controller-manager-2834499578-y9cnl   1/1       Running   0          2m
+kube-system   kube-dns-v11-2259792283-5tpld              4/4       Running   0          2m
+kube-system   kube-proxy-8zr1b                           1/1       Running   0          2m
+kube-system   kube-proxy-i9cgw                           1/1       Running   0          2m
+kube-system   kube-proxy-n6qg3                           1/1       Running   0          2m
+kube-system   kube-scheduler-4136156790-v9892            1/1       Running   0          2m
+kube-system   kubelet-9wilx                              1/1       Running   0          2m
+kube-system   kubelet-a6mmj                              1/1       Running   0          2m
+kube-system   kubelet-eomnb                              1/1       Running   0          2m
+</code></pre>
+
+<p>Try deleting pods to see that the cluster is resilient to failures and machine restarts (CoreOS auto-updates).</p>
+
+<h2 id="links">Links</h2>
+
+<ul>
+<li><a href="https://github.com/coreos/coreos-baremetal/blob/master/Documentation/bootkube.md">https://github.com/coreos/coreos-baremetal/blob/master/Documentation/bootkube.md</a></li>
+<li><a href="http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html">http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html</a></li>
+<li><a href="https://github.com/coreos/coreos-baremetal/tree/master/contrib/dnsmasq">https://github.com/coreos/coreos-baremetal/tree/master/contrib/dnsmasq</a></li>
+<li><a href="https://github.com/coreos/coreos-baremetal/blob/master/Documentation/bootkube.md">https://github.com/coreos/coreos-baremetal/blob/master/Documentation/bootkube.md</a></li>
+<li><a href="https://www.linux.com/learn/dnsmasq-easy-lan-name-services">https://www.linux.com/learn/dnsmasq-easy-lan-name-services</a></li>
+</ul>
+
+    </div>
+
+    <div>
+        <hr/>
+        <b>Like this post?</b> Want more? <a href="http://eepurl.com/cdUha1"><b><u>Subscribe</u></b></a> to get updates delivered straight to your inbox.
+        <hr/>
+    </div>
+    <footer>
+        <ul class="stats">
+    
+        
+
+        
+        
+            <li>
+                
+                
+                    
+
+                    
+                    
+
+                    
+
+                    
+                        Categories
+                    
+                
+            </li>
+        
+    
+
+    
+    
+        <li><a href='../../categories/architecture'>architecture</a></li>
+    
+        <li><a href='../../categories/docker'>docker</a></li>
+    
+        <li><a href='../../categories/infrastructure'>infrastructure</a></li>
+    
+        <li><a href='../../categories/coreos'>coreos</a></li>
+    
+        <li><a href='../../categories/kubernetes'>kubernetes</a></li>
+    
+        <li><a href='../../categories/k8s'>k8s</a></li>
+    
+</ul>
+
+    </footer>
+</article>
+<ul class="actions pagination">
+    
+        <li><a href="http://blog.lwolf.org/post/migrate-infrastructure-to-kubernetes-part2-basic-services/"
+                class="button big previous">Migrate infrastructure to K8s. Part 2. Basic services.</a></li>
+    
+
+    
+        <li><a href="http://blog.lwolf.org/post/how-to-easily-deploy-gitlab-on-kubernetes/"
+                class="button big next">How to easily deploy GitLab on Kubernetes</a></li>
+    
+</ul>
+
+
+
+    
+        <article class="post">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'blog-lwolf';
+    var disqus_identifier = 'http:\/\/blog.lwolf.org\/post\/bootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube\/';
+    var disqus_title = 'Bootstrapping CoreOS cluster with Kubernetes in 20 minutes using coreos-baremental and bootkube';
+    var disqus_url = 'http:\/\/blog.lwolf.org\/post\/bootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </article>
+    
+
+
+    </div>
+    
+<section id="sidebar">
+
+    
+        <section id="intro">
+            
+            
+                
+                    <a href="../../" class="logo"><img src="../../img/author.jpg" alt="Hugo Future Imperfect" /></a>
+                
+            
+            
+                <header>
+                    <h2>LWOLFS BLOG</h2>
+                    <p>Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc</p>
+                </header>
+            
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+        </section>
+
+    
+        <section id="recent-posts">
+            <ul class="posts">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-06-19'>
+                                    June 19, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-29'>
+                                    May 29, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/">Going open-source in monitoring, part 0: Intro</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-12'>
+                                    May 12, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/">How to recover data from broken GlusterFS cluster</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-31'>
+                                    March 31, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-30'>
+                                    March 30, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+
+                
+                    <li>
+                        <ul class="actions">
+                            <li><a href=
+                            
+                                /post/
+                            
+                            class="button">View more posts</a></li>
+                        </ul>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+    
+    
+    
+        <section id="categories">
+            <ul class="posts">
+                <header>
+                    <h3><a href="../../categories/">Categories</a></h3>
+                </header>
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/docker/">docker</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/infrastructure/">infrastructure</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/kubernetes/">kubernetes</a>
+                                <span style="float:right;">17</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/k8s/">k8s</a>
+                                <span style="float:right;">13</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/devops/">devops</a>
+                                <span style="float:right;">10</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ci/cd/">ci/cd</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/gitlab/">gitlab</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coding/">coding</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/monitoring/">monitoring</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/prometheus/">prometheus</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coreos/">coreos</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/glusterfs/">glusterfs</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/letsencrypt/">letsencrypt</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">python</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ssl/">ssl</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/storage/">storage</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/faas/">FaaS</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">Python</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/architecture/">architecture</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/golang/">golang</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/high-availability/">high-availability</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/nginx/">nginx</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/postgresql/">postgresql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/serverless/">serverless</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/sql/">sql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+            </ul>
+        </section>
+    
+
+    
+        
+        <section class="blurb">
+            <h2>About</h2>
+            <p>Some about me text...</p>
+
+            <ul class="actions">
+                <li><a href="../../about/" class="button">Learn More</a></li>
+            </ul>
+        </section>
+        
+
+    
+        <section id="footer">
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+
+            <p class="copyright">&copy; lwolfs blog. Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a>. Ported by <a href="//github.com/jpescador" target="_blank">Julio Pescador</a>. Powered by <a href="//gohugo.io" target="_blank">Hugo</a></p>
+        </section>
+
+</section>
+
+            </div>
+        <a id="back-to-top" href="#" class="fa fa-arrow-up fa-border fa-2x"></a>
+        
+
+        
+        
+            
+        
+
+        
+        
+            <script src="../../js/jquery.min.js"></script>
+            <script src="../../js/skel.min.js"></script>
+            <script src="../../js/util.js"></script>
+            <script src="../../js/main.js"></script>
+            <script src="../../js/backToTop.js"></script>
+            <script src="../../js/highlight.pack.js"></script>
+        
+
+        
+
+            
+            <script>hljs.initHighlightingOnLoad();</script>
+            
+
+            
+            <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-538070ba29aaa8d5"></script>
+
+    </body>
+</html>
+

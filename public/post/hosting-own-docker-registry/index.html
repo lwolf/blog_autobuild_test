@@ -1,0 +1,1294 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        
+            
+                <title>Hosting own docker registry with UI and tls</title>
+            
+        
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content="Hugo 0.24.1" />
+        
+
+
+        
+            <meta name="author" content="Sergey Nuzhdin">
+        
+        
+            <meta name="description" content="Deploying docker registry with UI and tls for kubernetes cluster">
+        
+
+        
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="Hosting own docker registry with UI and tls"/>
+<meta name="twitter:title" content="Hosting own docker registry with UI and tls"/>
+<meta name="twitter:description" content="Deploying docker registry with UI and tls for kubernetes cluster"/>
+
+
+        <meta property="og:title" content="Hosting own docker registry with UI and tls" />
+<meta property="og:description" content="Deploying docker registry with UI and tls for kubernetes cluster" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://blog.lwolf.org/post/hosting-own-docker-registry/" />
+
+
+
+<meta property="article:published_time" content="2016-06-08T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2016-06-08T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+        
+<meta itemprop="name" content="Hosting own docker registry with UI and tls">
+<meta itemprop="description" content="Deploying docker registry with UI and tls for kubernetes cluster">
+
+
+<meta itemprop="dateModified" content="2016-06-08T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="821">
+
+
+
+<meta itemprop="keywords" content="FaaS,Python,architecture,ci/cd,coding,coreos,devops,docker,gitlab,glusterfs,golang,high-availability,infrastructure,k8s,kubernetes,letsencrypt,monitoring,nginx,postgresql,prometheus,python,serverless,sql,ssl,storage," />
+
+        
+
+        
+
+        
+        
+            
+        
+
+        
+        
+            <link rel="stylesheet" href="../../css/google-font.css" />
+            <link rel="stylesheet" href="../../css/font-awesome.min.css" />
+            <link rel="stylesheet" href="../../css/main.css" />
+            <link rel="stylesheet" href="../../css/add-on.css" />
+            <link rel="stylesheet" href="../../css/monokai-sublime.css">
+        
+
+        
+
+        
+        
+        
+            
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47060494-2', 'auto');
+ga('send', 'pageview');
+</script>
+
+        
+    </head>
+    <body>
+
+        
+        <div id="wrapper">
+
+    
+    
+<header id="header">
+    
+        <h2><a href="../../">lwolfs blog</i></a></h2>
+    
+
+    <nav class="links">
+        <ul>
+            
+                <li>
+                    <a href="../../post">
+                        
+                            <i class="fa fa-newspaper-o">&nbsp;</i>Posts
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../categories">
+                        Categories
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../about">
+                        About
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="http://eepurl.com/cdUha1">
+                        Subscribe
+                    </a>
+                </li>
+            
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            
+            <li id="share-nav" class="share-menu" style="display:none;">
+                <a class="fa-share-alt" href="#share-menu">Share</a>
+            </li>
+            
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="//google.com/search">
+                    <input type="text" name="q" placeholder="Search" />
+                    <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+<section id="menu">
+
+    
+        <section>
+            <form class="search" method="get" action="//google.com/search">
+                <input type="text" name="q" placeholder="Search" />
+                <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+            </form>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                
+                    <li>
+                        <a href="../../post">
+                            <h3>
+                                
+                                    <i class="fa fa-newspaper-o">&nbsp;</i>
+                                
+                                Posts
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../categories">
+                            <h3>
+                                
+                                Categories
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../about">
+                            <h3>
+                                
+                                About
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="http://eepurl.com/cdUha1">
+                            <h3>
+                                
+                                Subscribe
+                            </h3>
+                        </a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/"><p>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"><p>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/"><p>Going open-source in monitoring, part 0: Intro</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"><p>How to recover data from broken GlusterFS cluster</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/"><p>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</p></a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        
+</section>
+
+    <section id="share-menu">
+    <section id="social-share-nav">
+        <ul class="links">
+            <header>
+                <h3>Share this post <i class="fa fa-smile-o"></i></h3>
+            </header>
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f&text=Hosting%20own%20docker%20registry%20with%20UI%20and%20tls&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f&title=Hosting%20own%20docker%20registry%20with%20UI%20and%20tls" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f&title=Hosting%20own%20docker%20registry%20with%20UI%20and%20tls" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f&title=Hosting%20own%20docker%20registry%20with%20UI%20and%20tls" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+</section>
+
+    
+    <div id="main">
+        
+        
+        <article class="post">
+    <header>
+    <div class="title">
+        
+            <h1><a href="http://blog.lwolf.org/post/hosting-own-docker-registry/">Hosting own docker registry with UI and tls</a></h1>
+            
+        
+        
+            <p>Deploying docker registry with UI and tls for kubernetes cluster</p>
+        
+    </div>
+    <div class="meta">
+        
+            
+        
+
+        <time class="published"
+            datetime='2016-06-08'>
+            June 8, 2016</time>
+        <span class="author">Sergey Nuzhdin</span>
+        
+            <p>4 minute read</p>
+        
+        
+    </div>
+</header>
+
+
+    <section id="social-share">
+        <ul class="icons">
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f&text=Hosting%20own%20docker%20registry%20with%20UI%20and%20tls&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f&title=Hosting%20own%20docker%20registry%20with%20UI%20and%20tls" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f&title=Hosting%20own%20docker%20registry%20with%20UI%20and%20tls" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f&title=Hosting%20own%20docker%20registry%20with%20UI%20and%20tls" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhosting-own-docker-registry%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+    
+    
+
+    
+        
+        
+
+
+
+
+    
+    
+        
+    
+
+
+        
+
+        <a href="http://blog.lwolf.org/post/hosting-own-docker-registry/" class="image featured">
+            <img src="../../img/2016/06/private-containers.png" alt="" />
+        </a>
+    
+
+
+    <div id="content">
+        
+
+<p>First thing you need if you&rsquo;re using Kubernetes - Docker registry. Because its all about containers.
+So in this post I will show how to deploy your own registry inside Kubernetes cluster,
+with UI and tls, with basic http authentication.
+<!-- more --></p>
+
+<p>I&rsquo;m going to use cluster I deployed in previous <a href="../../post/migrate-infrastructure-to-kubernetes-building-baremetal-cluster/">post</a>.
+As short recap - we have Kubernetes cluster with few nodes, and external loadbalancer (ubuntu based machine with nginx)
+
+<figure >
+    
+        <img src="../../img/2016/05/kube-schema-simple.png" alt="Kubernetes cluster schema" />
+    
+    
+</figure>
+</p>
+
+<h1 id="get-ssl-certificates-from-let-s-encrypt">Get ssl certificates from Let&rsquo;s Encrypt</h1>
+
+<p>To have proper registry opened to the web, we need to get ssl certificates.
+For this we&rsquo;re going to obtain free ssl certificate from <a href="https://letsencrypt.org/">Let&rsquo;s Encrypt</a>.
+In this post I&rsquo;m going to use two domains: <code>example.com</code> for registry itself and <code>www.example.com</code> for UI.</p>
+
+<p>Getting certificates from Let&rsquo;s Encrypt is described in official <a href="https://letsencrypt.org/getting-started/">getting started guide</a></p>
+
+<p>After completing it we should have several <code>pem</code> files, but we need only two of them: <code>fullchain1.pem</code> and <code>privkey1.pem</code>.</p>
+
+<h1 id="deploy-docker-registry-to-kubernetes">Deploy docker registry to Kubernetes</h1>
+
+<p>Deploying docker registry into Kubernetes is easy, mostly because Kubernetes provides examples in its own repository.
+We are going to use this examples to deploy our registry.
+In <a href="https://github.com/kubernetes/kubernetes/tree/master/cluster/addons/registry">kubernetes/cluster/addons/registry</a> we can find different ways of doing this:</p>
+
+<ul>
+<li>plain registry without tls or auth</li>
+<li>registry with lts</li>
+<li>registry with http auth protection</li>
+</ul>
+
+<p>We&rsquo;re going to use registry with tls but with some changes.
+We need to create secret with our certificates.</p>
+
+<pre><code class="language-bash">kubectl --namespace=kube-system create secret generic registry-tls-secret --from-file=domain.crt=fullchain1.pem --from-file=domain.key=privkey1.pem
+</code></pre>
+
+<p>Next step is to create replication controller. Since we want to have some frontend, we need to add another container to the POD - <code>registry-tls-rc.yaml</code>:</p>
+
+<pre><code class="language-yaml">apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: kube-registry-v0
+  namespace: kube-system
+  labels:
+    k8s-app: kube-registry
+    version: v0
+spec:
+  replicas: 1
+  selector:
+    k8s-app: kube-registry
+    version: v0
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-registry
+        version: v0
+    spec:
+      containers:
+      - name: registry
+        image: registry:2
+        resources:
+          # keep request = limit to keep this container in guaranteed class
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: REGISTRY_HTTP_ADDR
+          value: :5000
+        - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+          value: /var/lib/registry
+        - name: REGISTRY_HTTP_TLS_CERTIFICATE
+          value: /certs/domain.crt
+        - name: REGISTRY_HTTP_TLS_KEY
+          value: /certs/domain.key
+        volumeMounts:
+        - name: image-store
+          mountPath: /var/lib/registry
+        - name: cert-dir
+          mountPath: /certs
+        ports:
+        - containerPort: 5000
+          name: registry
+          protocol: TCP
+      - name: registry-ui
+        image: konradkleine/docker-registry-frontend:v2
+        env:
+        - name: ENV_DOCKER_REGISTRY_HOST
+          value: &quot;localhost&quot;
+        - name: ENV_DOCKER_REGISTRY_PORT
+          value: &quot;5000&quot;
+        - name: ENV_DOCKER_REGISTRY_USE_SSL
+          value: &quot;1&quot;
+        ports:
+        - containerPort: 80
+          name: registry
+          protocol: TCP
+      volumes:
+      - name: image-store
+        hostPath:
+          path: /data/docker_registry
+      - name: cert-dir
+        secret:
+          secretName: registry-tls-secret
+</code></pre>
+
+<p>We added registry-ui container to our POD with needed settings:</p>
+
+<ul>
+<li><code>ENV_DOCKER_REGISTRY_HOST</code> can be <code>localhost</code> since we will run it on the same pod as registry</li>
+<li><code>ENV_DOCKER_REGISTRY_USE_SSL</code> set to 1 to enable ssl</li>
+<li><code>ENV_DOCKER_REGISTRY_PORT</code> actual port of registry</li>
+</ul>
+
+<p>Also we mounted 2 volumes, one with tls secret and one to store actual data on the host.</p>
+
+<p>And now we need to create Kubernetes Service description <code>registry-tls-svc.yaml</code></p>
+
+<pre><code class="language-yaml">apiVersion: v1
+kind: Service
+metadata:
+  name: kube-registry
+  namespace: kube-system
+  labels:
+    k8s-app: kube-registry
+    kubernetes.io/name: &quot;KubeRegistry&quot;
+spec:
+  selector:
+    k8s-app: kube-registry
+  type: NodePort
+  ports:
+  - name: registry
+    port: 5000
+    protocol: TCP
+    nodePort: 30299
+  - name: registry-ui
+    port: 80
+    protocol: TCP
+    nodePort: 30949
+</code></pre>
+
+<p>We&rsquo;re going to use NodePort type of the service to expose the same ports on all nodes.
+Configuring ingress controllers and proper loadbalancing is out of scope for this post.</p>
+
+<p>Lets deploy what we have:</p>
+
+<pre><code class="language-bash">kubectl create -f registry-tls-svc.yaml
+kubectl create -f registry-tls-rc.yaml
+</code></pre>
+
+<h1 id="configure-nginx">Configure nginx</h1>
+
+<p>At this point we should have registry up and running.
+I spent some time trying to configure nginx to work with ssl and docker registry.
+And then I found awesome <a href="http://container-solutions.com/running-secured-docker-registry-2-0/">post</a> describing it.</p>
+
+<p>Since we want our registry to be accessible only for authorized users we need to create  <code>.htpasswd</code> file.
+For this we can use <code>htpasswd</code> command, available in ubuntu (my external loadbalancer runs it) after installing <code>apache-utils</code></p>
+
+<pre><code class="language-bash">apt-get install apache2-utils
+mkdir /etc/nginx/registry
+cd /etc/nginx/registry
+htpasswd -c .htpasswd exampleuser
+</code></pre>
+
+<p>Also we need to put our ssl certificates to <code>/etc/nginx/ssl/dhub</code>.</p>
+
+<p>After this we can create nginx config with 2 server blocks to serve traffic to our registry and UI</p>
+
+<pre><code>upstream registry {
+    server NODE1-IP;
+    server NODE2-IP;
+    server NODE3-IP;
+}
+server {
+    listen 443 ssl;
+
+    server_name example.com;
+
+    add_header Docker-Distribution-Api-Version registry/2.0 always;
+
+    ssl on;
+    ssl_certificate /etc/nginx/ssl/dhub/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/dhub/privkey.pem;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Original-URI $request_uri;
+    proxy_set_header Docker-Distribution-Api-Version registry/2.0;
+
+    # Allow large uploads
+    client_max_body_size 600M;
+
+    location / {
+        auth_basic &quot;Restricted&quot;;
+        auth_basic_user_file /var/www/dhub/.htpasswd;
+        proxy_pass https://registry:30299;
+        proxy_read_timeout 900;
+    }
+    access_log  /var/log/nginx/docker.access.log;
+    error_log   /var/log/nginx/docker.error.log;
+}
+
+server {
+        listen 443 ssl;
+        server_name www.example.com;
+
+        ssl on;
+        ssl_certificate /etc/nginx/ssl/dhub/fullchain.pem;
+        ssl_certificate_key /etc/nginx/ssl/dhub/privkey.pem;
+        location / {
+            auth_basic &quot;Restricted&quot;;
+            auth_basic_user_file /var/www/dhub/.htpasswd;
+            proxy_pass http://registry:30949;
+        }
+        access_log  /var/log/nginx/docker.access.log;
+        error_log   /var/log/nginx/docker.error.log;
+}
+</code></pre>
+
+<p>We can check nginx config for errors before applying changes with <code>nginx -t</code> and if everything is fine we need to reload it.</p>
+
+<pre><code>/etc/init.d/nginx reload
+</code></pre>
+
+<p>Thats it. Now you should be able to use your docker registry.</p>
+
+<pre><code>docker pull alpine
+docker tag alpine:latest example.com/alpine
+
+docker login -u exampleuser -p &quot;YOURPASSWORD&quot; -e your.email@gmail.com example.com
+docker push example.com/alpine
+
+</code></pre>
+
+<p>Also you should be able to access your registry through frontend on <a href="https://www.example.com">https://www.example.com</a></p>
+
+    </div>
+
+    <div>
+        <hr/>
+        <b>Like this post?</b> Want more? <a href="http://eepurl.com/cdUha1"><b><u>Subscribe</u></b></a> to get updates delivered straight to your inbox.
+        <hr/>
+    </div>
+    <footer>
+        <ul class="stats">
+    
+        
+
+        
+        
+            <li>
+                
+                
+                    
+
+                    
+                    
+
+                    
+
+                    
+                        Categories
+                    
+                
+            </li>
+        
+    
+
+    
+    
+        <li><a href='../../categories/nginx'>nginx</a></li>
+    
+        <li><a href='../../categories/docker'>docker</a></li>
+    
+        <li><a href='../../categories/infrastructure'>infrastructure</a></li>
+    
+        <li><a href='../../categories/kubernetes'>kubernetes</a></li>
+    
+</ul>
+
+    </footer>
+</article>
+<ul class="actions pagination">
+    
+        <li><a href="http://blog.lwolf.org/post/migrate-infrastructure-to-kubernetes-building-baremetal-cluster/"
+                class="button big previous">Migrate infrastructure to Kubernetes: Building baremetal cluster</a></li>
+    
+
+    
+        <li><a href="http://blog.lwolf.org/post/deploying-tectonic-to-baremetal-cluster/"
+                class="button big next">Deploying Kubernetes to baremetal using tectonic</a></li>
+    
+</ul>
+
+
+
+    
+        <article class="post">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'blog-lwolf';
+    var disqus_identifier = 'http:\/\/blog.lwolf.org\/post\/hosting-own-docker-registry\/';
+    var disqus_title = 'Hosting own docker registry with UI and tls';
+    var disqus_url = 'http:\/\/blog.lwolf.org\/post\/hosting-own-docker-registry\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </article>
+    
+
+
+    </div>
+    
+<section id="sidebar">
+
+    
+        <section id="intro">
+            
+            
+                
+                    <a href="../../" class="logo"><img src="../../img/author.jpg" alt="Hugo Future Imperfect" /></a>
+                
+            
+            
+                <header>
+                    <h2>LWOLFS BLOG</h2>
+                    <p>Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc</p>
+                </header>
+            
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+        </section>
+
+    
+        <section id="recent-posts">
+            <ul class="posts">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-06-19'>
+                                    June 19, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-29'>
+                                    May 29, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/">Going open-source in monitoring, part 0: Intro</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-12'>
+                                    May 12, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/">How to recover data from broken GlusterFS cluster</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-31'>
+                                    March 31, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-30'>
+                                    March 30, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+
+                
+                    <li>
+                        <ul class="actions">
+                            <li><a href=
+                            
+                                /post/
+                            
+                            class="button">View more posts</a></li>
+                        </ul>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+    
+    
+    
+        <section id="categories">
+            <ul class="posts">
+                <header>
+                    <h3><a href="../../categories/">Categories</a></h3>
+                </header>
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/docker/">docker</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/infrastructure/">infrastructure</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/kubernetes/">kubernetes</a>
+                                <span style="float:right;">17</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/k8s/">k8s</a>
+                                <span style="float:right;">13</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/devops/">devops</a>
+                                <span style="float:right;">10</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ci/cd/">ci/cd</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/gitlab/">gitlab</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coding/">coding</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/monitoring/">monitoring</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/prometheus/">prometheus</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coreos/">coreos</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/glusterfs/">glusterfs</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/letsencrypt/">letsencrypt</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">python</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ssl/">ssl</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/storage/">storage</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/faas/">FaaS</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">Python</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/architecture/">architecture</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/golang/">golang</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/high-availability/">high-availability</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/nginx/">nginx</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/postgresql/">postgresql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/serverless/">serverless</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/sql/">sql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+            </ul>
+        </section>
+    
+
+    
+        
+        <section class="blurb">
+            <h2>About</h2>
+            <p>Some about me text...</p>
+
+            <ul class="actions">
+                <li><a href="../../about/" class="button">Learn More</a></li>
+            </ul>
+        </section>
+        
+
+    
+        <section id="footer">
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+
+            <p class="copyright">&copy; lwolfs blog. Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a>. Ported by <a href="//github.com/jpescador" target="_blank">Julio Pescador</a>. Powered by <a href="//gohugo.io" target="_blank">Hugo</a></p>
+        </section>
+
+</section>
+
+            </div>
+        <a id="back-to-top" href="#" class="fa fa-arrow-up fa-border fa-2x"></a>
+        
+
+        
+        
+            
+        
+
+        
+        
+            <script src="../../js/jquery.min.js"></script>
+            <script src="../../js/skel.min.js"></script>
+            <script src="../../js/util.js"></script>
+            <script src="../../js/main.js"></script>
+            <script src="../../js/backToTop.js"></script>
+            <script src="../../js/highlight.pack.js"></script>
+        
+
+        
+
+            
+            <script>hljs.initHighlightingOnLoad();</script>
+            
+
+            
+            <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-538070ba29aaa8d5"></script>
+
+    </body>
+</html>
+

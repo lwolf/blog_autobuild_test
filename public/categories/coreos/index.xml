@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Coreos on lwolfs blog</title>
+    <link>http://blog.lwolf.org/categories/coreos/</link>
+    <description>Recent content in Coreos on lwolfs blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 22 Aug 2016 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://blog.lwolf.org/categories/coreos/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Bootstrapping CoreOS cluster with Kubernetes in 20 minutes using coreos-baremental and bootkube</title>
+      <link>http://blog.lwolf.org/post/bootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube/</link>
+      <pubDate>Mon, 22 Aug 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/bootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube/</guid>
+      <description>It&amp;rsquo;s 4 months now since I migrated my infrastructure to CoreOS and Kubernetes. Now I can say that this was the right decision. Or, even, the best thing that happened to my servers :).
+Of course, there were some problems during this period, but mostly because of some misconfiguration from my side. Also, there was no single downtime because of infrastructure.
+My original post was very long and compicated. Actually, even I don&amp;rsquo;t want to reproduce all of this stuff ever again.</description>
+    </item>
+    
+    <item>
+      <title>Migrate infrastructure to Kubernetes: Building baremetal cluster</title>
+      <link>http://blog.lwolf.org/post/migrate-infrastructure-to-kubernetes-building-baremetal-cluster/</link>
+      <pubDate>Wed, 08 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/migrate-infrastructure-to-kubernetes-building-baremetal-cluster/</guid>
+      <description>I started trying to switch to Docker about a year ago, but all tools were kind of not-production-ready. With docker-compose it was unreal to scale containers without restart. Deis looked like a black box with a lot of magic. Then Tutum appeared and it was awesome, really, it was the first working solution. So I switched to it. It was fine most of the time, yes it had problems with networking, yes it was annoying to copy-paste all environment variables into each container, but it was in beta, and it was free.</description>
+    </item>
+    
+  </channel>
+</rss>

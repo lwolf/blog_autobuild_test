@@ -1,0 +1,74 @@
+baseurl = "http://blog.lwolf.org"
+languageCode = "en-us"
+title = "lwolfs blog"
+theme = "hugo-future-imperfect"
+preserveTaxonomyNames = true
+paginate = 5
+disqusShortname = "blog-lwolf"
+googleAnalytics = "UA-47060494-2"
+relativeURLs = true
+
+[params]
+    # Sets the meta tag description, usually reserved for the main page
+    description = "Blog about python, docker, ci/cd, kubernetes and similar stuff,"
+    # This will appear on the top left of the navigation bar
+    navbarTitle = "lwolfs blog"
+    # Social media buttons that appear on the sidebar
+    socialAppearAtTop = true
+    socialAppearAtBottom = true
+    # set this to the section name if section is not post
+    viewMorePostLink = "/post/"
+
+# Optional Params
+    categoriesByCount    = true
+    includeReadingTime   = true
+    # The set of favicons used are based on the write-up from this link:
+    # https://github.com/audreyr/favicon-cheat-sheet
+    # Please see the favicon partial template for more information
+    loadFavicon          = false
+    faviconVersion       = ""
+    [params.intro]
+    header    = "LWOLFS BLOG"
+    paragraph = "Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc"
+    about     = "Some about me text..."
+
+[params.intro.pic]
+    src       = "/img/author.jpg"
+    # modify your picture in the shape of a circle or
+    # future imperfect's hexagonal shape
+    circle    = false
+    imperfect = true
+    width     = ""
+    alt       = "Hugo Future Imperfect"
+
+
+[[menu.main]]
+    name = "Posts"
+    url = "/post"
+    identifier = "fa fa-newspaper-o"
+    weight = 1
+
+[[menu.main]]
+    name = "Categories"
+    url = "/categories"
+    weight = 2
+
+[[menu.main]]
+    name = "About"
+    url = "/about"
+    weight = 3
+[[menu.main]]
+    name = "Subscribe"
+    url = "http://eepurl.com/cdUha1"
+    weight = 4
+
+# Insert your username and the icon will apear on the page as long as
+# socialAppearAtTop or socialAppearAtBottom is set to true in the params area
+# The social media icons will appear on the sidebar
+[social]
+    github          = "lwolf"
+    linkedin        = "sergey-nuzhdin-9925b31a"
+    facebook        = "snuzhdin"
+    email           = "ipaq.lw@gmail.com"
+    googleplus      = ""
+    reddit          = ""

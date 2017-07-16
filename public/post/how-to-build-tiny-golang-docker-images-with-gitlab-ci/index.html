@@ -1,0 +1,1206 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        
+            
+                <title>How to build tiny Golang docker images with Gitlab-CI</title>
+            
+        
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content="Hugo 0.24.1" />
+        
+
+
+        
+            <meta name="author" content="Sergey Nuzhdin">
+        
+        
+            <meta name="description" content="Building tiny docker images for Golang applications with Gitlab">
+        
+
+        
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="How to build tiny Golang docker images with Gitlab-CI"/>
+<meta name="twitter:title" content="How to build tiny Golang docker images with Gitlab-CI"/>
+<meta name="twitter:description" content="Building tiny docker images for Golang applications with Gitlab"/>
+
+
+        <meta property="og:title" content="How to build tiny Golang docker images with Gitlab-CI" />
+<meta property="og:description" content="Building tiny docker images for Golang applications with Gitlab" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/" />
+
+
+
+<meta property="article:published_time" content="2017-02-06T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2017-02-06T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+        
+<meta itemprop="name" content="How to build tiny Golang docker images with Gitlab-CI">
+<meta itemprop="description" content="Building tiny docker images for Golang applications with Gitlab">
+
+
+<meta itemprop="dateModified" content="2017-02-06T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="560">
+
+
+
+<meta itemprop="keywords" content="FaaS,Python,architecture,ci/cd,coding,coreos,devops,docker,gitlab,glusterfs,golang,high-availability,infrastructure,k8s,kubernetes,letsencrypt,monitoring,nginx,postgresql,prometheus,python,serverless,sql,ssl,storage," />
+
+        
+
+        
+
+        
+        
+            
+        
+
+        
+        
+            <link rel="stylesheet" href="../../css/google-font.css" />
+            <link rel="stylesheet" href="../../css/font-awesome.min.css" />
+            <link rel="stylesheet" href="../../css/main.css" />
+            <link rel="stylesheet" href="../../css/add-on.css" />
+            <link rel="stylesheet" href="../../css/monokai-sublime.css">
+        
+
+        
+
+        
+        
+        
+            
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47060494-2', 'auto');
+ga('send', 'pageview');
+</script>
+
+        
+    </head>
+    <body>
+
+        
+        <div id="wrapper">
+
+    
+    
+<header id="header">
+    
+        <h2><a href="../../">lwolfs blog</i></a></h2>
+    
+
+    <nav class="links">
+        <ul>
+            
+                <li>
+                    <a href="../../post">
+                        
+                            <i class="fa fa-newspaper-o">&nbsp;</i>Posts
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../categories">
+                        Categories
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../about">
+                        About
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="http://eepurl.com/cdUha1">
+                        Subscribe
+                    </a>
+                </li>
+            
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            
+            <li id="share-nav" class="share-menu" style="display:none;">
+                <a class="fa-share-alt" href="#share-menu">Share</a>
+            </li>
+            
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="//google.com/search">
+                    <input type="text" name="q" placeholder="Search" />
+                    <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+<section id="menu">
+
+    
+        <section>
+            <form class="search" method="get" action="//google.com/search">
+                <input type="text" name="q" placeholder="Search" />
+                <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+            </form>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                
+                    <li>
+                        <a href="../../post">
+                            <h3>
+                                
+                                    <i class="fa fa-newspaper-o">&nbsp;</i>
+                                
+                                Posts
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../categories">
+                            <h3>
+                                
+                                Categories
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../about">
+                            <h3>
+                                
+                                About
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="http://eepurl.com/cdUha1">
+                            <h3>
+                                
+                                Subscribe
+                            </h3>
+                        </a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/"><p>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"><p>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/"><p>Going open-source in monitoring, part 0: Intro</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"><p>How to recover data from broken GlusterFS cluster</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/"><p>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</p></a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        
+</section>
+
+    <section id="share-menu">
+    <section id="social-share-nav">
+        <ul class="links">
+            <header>
+                <h3>Share this post <i class="fa fa-smile-o"></i></h3>
+            </header>
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f&text=How%20to%20build%20tiny%20Golang%20docker%20images%20with%20Gitlab-CI&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f&title=How%20to%20build%20tiny%20Golang%20docker%20images%20with%20Gitlab-CI" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f&title=How%20to%20build%20tiny%20Golang%20docker%20images%20with%20Gitlab-CI" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f&title=How%20to%20build%20tiny%20Golang%20docker%20images%20with%20Gitlab-CI" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+</section>
+
+    
+    <div id="main">
+        
+        
+        <article class="post">
+    <header>
+    <div class="title">
+        
+            <h1><a href="http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/">How to build tiny Golang docker images with Gitlab-CI</a></h1>
+            
+        
+        
+            <p>Building tiny docker images for Golang applications with Gitlab</p>
+        
+    </div>
+    <div class="meta">
+        
+            
+        
+
+        <time class="published"
+            datetime='2017-02-06'>
+            February 6, 2017</time>
+        <span class="author">Sergey Nuzhdin</span>
+        
+            <p>3 minute read</p>
+        
+        
+    </div>
+</header>
+
+
+    <section id="social-share">
+        <ul class="icons">
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f&text=How%20to%20build%20tiny%20Golang%20docker%20images%20with%20Gitlab-CI&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f&title=How%20to%20build%20tiny%20Golang%20docker%20images%20with%20Gitlab-CI" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f&title=How%20to%20build%20tiny%20Golang%20docker%20images%20with%20Gitlab-CI" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f&title=How%20to%20build%20tiny%20Golang%20docker%20images%20with%20Gitlab-CI" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-tiny-golang-docker-images-with-gitlab-ci%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+    
+    
+
+    
+        
+        
+
+
+
+
+    
+    
+        
+    
+
+
+        
+
+        <a href="http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/" class="image featured">
+            <img src="../../img/2017/02/golang_docker_gitlab.png" alt="" />
+        </a>
+    
+
+
+    <div id="content">
+        
+
+<p>This post will show how to build Golang docker containers using Gitlab-CI.
+It&rsquo;s the sequel of my previous posts about <a href="http://blog.lwolf.org/post/How-to-build-and-test-docker-images-in-gitlab-ci/">building</a> and <a href="http://blog.lwolf.org/post/how-to-speed-up-builds-and-save-time-and-money/">optimizing</a> docker containers.</p>
+
+<p>I’ve written a small microservice in Golang, and I needed to configure my GitLab to auto build it. It uses  <a href="https://glide.sh/">Glide</a> as a package manager for Go.</p>
+
+<p>My directory tree for this project looks like this:</p>
+
+<pre><code>
+&gt; $ tree
+├── Dockerfile
+├── build_base.sh
+├── glide.lock
+├── glide.yaml
+├── handlers.go
+├── db.go
+├── logger.go
+├── main.go
+├── middlewares.go
+├── utils.go
+├── deploy
+│   └── &lt;kubernetes-deploy-files&gt;
+├── release
+│   └── Dockerfile
+└── vendor
+    ├── github.com
+    │   └── ...
+    ├──gopkg.in
+        └── ...
+</code></pre>
+
+<p>Here I have some *<strong>.go</strong> files with my code. <strong>deploy</strong> directory with Kubernetes manifests. <strong>vendor</strong> folder is for dependencies. <strong>glide.lock</strong> and <strong>glide.yaml</strong> is used by the glide.</p>
+
+<p>I have 2 docker files here, one in the top level and one is inside release directory. First one is to install and build application. The second is to run. Having separate docker images for build and run allow me to have tiny container at the end.</p>
+
+<h1 id="dockerfile-for-build">Dockerfile for build</h1>
+
+<p>So I needed docker image with go and glide installed to be able to build my application. I found 2 or 3 golang-glide images, but they are based on ubuntu and weighed around 700Mb.</p>
+
+
+<figure >
+    
+        <img src="../../img/2017/02/standards.jpg" alt="another one meme" />
+    
+    
+</figure>
+
+
+<p>So I created just another one, but <del>with black jack and …</del>  based on alpine and with the latest versions of Golang and glide.</p>
+
+<p>I’m using it as a base image for my builder.</p>
+
+<pre><code>FROM lwolf/golang-glide:0.12.3
+
+ENV APP_PATH=/go/src/gitlab-path/repository-name
+
+RUN mkdir -p $APP_PATH
+WORKDIR $APP_PATH
+
+COPY glide.yaml glide.yaml
+COPY glide.lock glide.lock
+
+RUN glide install -v
+
+VOLUME [&quot;/build&quot;]
+
+ADD . $APP_PATH
+CMD GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /build/app
+</code></pre>
+
+<p>It’s pretty simple and straightforward:</p>
+
+<ul>
+<li>set application path</li>
+<li>add glide files</li>
+<li>install dependencies</li>
+<li>build the application and put into the volume.</li>
+</ul>
+
+<h1 id="dockerfile-for-production">Dockerfile for production</h1>
+
+<p>This one is really simple. It based on the tiny image from <a href="https://iron.io/">iron</a> with added binary from the previous step.</p>
+
+<pre><code>FROM iron/go
+ENTRYPOINT [&quot;/app&quot;]
+ADD app /
+</code></pre>
+
+<p>Resulting container is <strong>17Mb</strong> in size. Which is great, comparing to <strong>300-600Mb</strong> python images.</p>
+
+<h1 id="automation">Automation</h1>
+
+<p>All we have to do now is to write <strong>.gitlab-ci.yml</strong> file to do all this on each push.</p>
+
+<p><strong>.gitlab-ci.yml</strong> and <strong>build_base.sh</strong> are almost as in the <a href="http://blog.lwolf.org/post/how-to-speed-up-builds-and-save-time-and-money/">previous post</a>.</p>
+
+<pre><code># .gitlab-ci.yml
+
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - build
+
+variables:
+  REGISTRY: &quot;docker-registry.example.com&quot;
+  CONTAINER_IMAGE: ${REGISTRY}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
+
+build:
+  stage: build
+  before_script:
+    - docker login -u gitlab-ci -p $DHUB_ROCKS_PASSWORD $REGISTRY
+  script:
+    - sh build_base.sh gitlab-ci ${DHUB_ROCKS_PASSWORD} ${REGISTRY}
+    - docker run --rm -v $PWD/release:/build ${REGISTRY}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME}-builder-$(md5sum glide.lock | cut -d' ' -f1)
+    - cd release
+    - docker build -t ${CONTAINER_IMAGE} .
+    - docker push ${CONTAINER_IMAGE}
+</code></pre>
+
+<pre><code># build_base.sh
+
+#!/usr/bin/env bash
+username=${1}
+password=${2}
+registry=${3}
+
+requirements_hash=&quot;$(md5sum glide.lock | cut -d' ' -f1)&quot;
+curl -u ${username}:${password} https://${registry}/v2/${CI_PROJECT_NAME}/tags/list | grep ${requirements_hash}
+
+if [ $? -ne 0 ]; then
+    tag=${registry}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME}-builder-${requirements_hash}
+    echo &quot;going to build new base image ${tag}&quot;
+    docker build -t ${tag} -f Dockerfile .
+    docker push ${tag}
+fi
+</code></pre>
+
+<p>First I was using hash from the glide.lock file instead of calculation it. But it turned out that it’s not always updated.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>As a result, I have a pretty fast build right now: <strong>1:30m</strong> for usual builds and <strong>3:00m</strong> on requirements update.</p>
+
+
+<figure >
+    
+        <img src="../../img/2017/02/build_time.png" alt="build times" />
+    
+    
+</figure>
+
+
+<p>The size of the resulting image is also great - <strong>17mb</strong>. It could be  reduced for another few megs by switching from <strong>iron/go</strong> base image to <strong>scratch</strong>.  But I don’t need it now.</p>
+
+    </div>
+
+    <div>
+        <hr/>
+        <b>Like this post?</b> Want more? <a href="http://eepurl.com/cdUha1"><b><u>Subscribe</u></b></a> to get updates delivered straight to your inbox.
+        <hr/>
+    </div>
+    <footer>
+        <ul class="stats">
+    
+        
+
+        
+        
+            <li>
+                
+                
+                    
+
+                    
+                    
+
+                    
+
+                    
+                        Categories
+                    
+                
+            </li>
+        
+    
+
+    
+    
+        <li><a href='../../categories/docker'>docker</a></li>
+    
+        <li><a href='../../categories/infrastructure'>infrastructure</a></li>
+    
+        <li><a href='../../categories/ci/cd'>ci/cd</a></li>
+    
+        <li><a href='../../categories/gitlab'>gitlab</a></li>
+    
+        <li><a href='../../categories/devops'>devops</a></li>
+    
+        <li><a href='../../categories/golang'>golang</a></li>
+    
+</ul>
+
+    </footer>
+</article>
+<ul class="actions pagination">
+    
+        <li><a href="http://blog.lwolf.org/post/how-to-run-functions-in-your-kubernetes-cluster/"
+                class="button big previous">How to run Functions in your Kubernetes cluster</a></li>
+    
+
+    
+        <li><a href="http://blog.lwolf.org/post/how-i-deployed-glusterfs-cluster-to-kubernetes/"
+                class="button big next">Two days of pain or how I deployed GlusterFS cluster to Kubernetes</a></li>
+    
+</ul>
+
+
+
+    
+        <article class="post">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'blog-lwolf';
+    var disqus_identifier = 'http:\/\/blog.lwolf.org\/post\/how-to-build-tiny-golang-docker-images-with-gitlab-ci\/';
+    var disqus_title = 'How to build tiny Golang docker images with Gitlab-CI';
+    var disqus_url = 'http:\/\/blog.lwolf.org\/post\/how-to-build-tiny-golang-docker-images-with-gitlab-ci\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </article>
+    
+
+
+    </div>
+    
+<section id="sidebar">
+
+    
+        <section id="intro">
+            
+            
+                
+                    <a href="../../" class="logo"><img src="../../img/author.jpg" alt="Hugo Future Imperfect" /></a>
+                
+            
+            
+                <header>
+                    <h2>LWOLFS BLOG</h2>
+                    <p>Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc</p>
+                </header>
+            
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+        </section>
+
+    
+        <section id="recent-posts">
+            <ul class="posts">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-06-19'>
+                                    June 19, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-29'>
+                                    May 29, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/">Going open-source in monitoring, part 0: Intro</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-12'>
+                                    May 12, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/">How to recover data from broken GlusterFS cluster</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-31'>
+                                    March 31, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-30'>
+                                    March 30, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+
+                
+                    <li>
+                        <ul class="actions">
+                            <li><a href=
+                            
+                                /post/
+                            
+                            class="button">View more posts</a></li>
+                        </ul>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+    
+    
+    
+        <section id="categories">
+            <ul class="posts">
+                <header>
+                    <h3><a href="../../categories/">Categories</a></h3>
+                </header>
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/docker/">docker</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/infrastructure/">infrastructure</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/kubernetes/">kubernetes</a>
+                                <span style="float:right;">17</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/k8s/">k8s</a>
+                                <span style="float:right;">13</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/devops/">devops</a>
+                                <span style="float:right;">10</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ci/cd/">ci/cd</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/gitlab/">gitlab</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coding/">coding</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/monitoring/">monitoring</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/prometheus/">prometheus</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coreos/">coreos</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/glusterfs/">glusterfs</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/letsencrypt/">letsencrypt</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">python</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ssl/">ssl</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/storage/">storage</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/faas/">FaaS</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">Python</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/architecture/">architecture</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/golang/">golang</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/high-availability/">high-availability</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/nginx/">nginx</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/postgresql/">postgresql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/serverless/">serverless</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/sql/">sql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+            </ul>
+        </section>
+    
+
+    
+        
+        <section class="blurb">
+            <h2>About</h2>
+            <p>Some about me text...</p>
+
+            <ul class="actions">
+                <li><a href="../../about/" class="button">Learn More</a></li>
+            </ul>
+        </section>
+        
+
+    
+        <section id="footer">
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+
+            <p class="copyright">&copy; lwolfs blog. Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a>. Ported by <a href="//github.com/jpescador" target="_blank">Julio Pescador</a>. Powered by <a href="//gohugo.io" target="_blank">Hugo</a></p>
+        </section>
+
+</section>
+
+            </div>
+        <a id="back-to-top" href="#" class="fa fa-arrow-up fa-border fa-2x"></a>
+        
+
+        
+        
+            
+        
+
+        
+        
+            <script src="../../js/jquery.min.js"></script>
+            <script src="../../js/skel.min.js"></script>
+            <script src="../../js/util.js"></script>
+            <script src="../../js/main.js"></script>
+            <script src="../../js/backToTop.js"></script>
+            <script src="../../js/highlight.pack.js"></script>
+        
+
+        
+
+            
+            <script>hljs.initHighlightingOnLoad();</script>
+            
+
+            
+            <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-538070ba29aaa8d5"></script>
+
+    </body>
+</html>
+

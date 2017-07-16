@@ -1,0 +1,1306 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        
+            
+                <title>How to run Functions in your Kubernetes cluster</title>
+            
+        
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content="Hugo 0.24.1" />
+        
+
+
+        
+            <meta name="author" content="Sergey Nuzhdin">
+        
+        
+            <meta name="description" content="How to run Serverless Functions in Kubernetes cluster.">
+        
+
+        
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="How to run Functions in your Kubernetes cluster"/>
+<meta name="twitter:title" content="How to run Functions in your Kubernetes cluster"/>
+<meta name="twitter:description" content="How to run Serverless Functions in Kubernetes cluster."/>
+
+
+        <meta property="og:title" content="How to run Functions in your Kubernetes cluster" />
+<meta property="og:description" content="How to run Serverless Functions in Kubernetes cluster." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://blog.lwolf.org/post/how-to-run-functions-in-your-kubernetes-cluster/" />
+
+
+
+<meta property="article:published_time" content="2017-01-16T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2017-01-16T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+        
+<meta itemprop="name" content="How to run Functions in your Kubernetes cluster">
+<meta itemprop="description" content="How to run Serverless Functions in Kubernetes cluster.">
+
+
+<meta itemprop="dateModified" content="2017-01-16T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="1025">
+
+
+
+<meta itemprop="keywords" content="FaaS,Python,architecture,ci/cd,coding,coreos,devops,docker,gitlab,glusterfs,golang,high-availability,infrastructure,k8s,kubernetes,letsencrypt,monitoring,nginx,postgresql,prometheus,python,serverless,sql,ssl,storage," />
+
+        
+
+        
+
+        
+        
+            
+        
+
+        
+        
+            <link rel="stylesheet" href="../../css/google-font.css" />
+            <link rel="stylesheet" href="../../css/font-awesome.min.css" />
+            <link rel="stylesheet" href="../../css/main.css" />
+            <link rel="stylesheet" href="../../css/add-on.css" />
+            <link rel="stylesheet" href="../../css/monokai-sublime.css">
+        
+
+        
+
+        
+        
+        
+            
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47060494-2', 'auto');
+ga('send', 'pageview');
+</script>
+
+        
+    </head>
+    <body>
+
+        
+        <div id="wrapper">
+
+    
+    
+<header id="header">
+    
+        <h2><a href="../../">lwolfs blog</i></a></h2>
+    
+
+    <nav class="links">
+        <ul>
+            
+                <li>
+                    <a href="../../post">
+                        
+                            <i class="fa fa-newspaper-o">&nbsp;</i>Posts
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../categories">
+                        Categories
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../about">
+                        About
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="http://eepurl.com/cdUha1">
+                        Subscribe
+                    </a>
+                </li>
+            
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            
+            <li id="share-nav" class="share-menu" style="display:none;">
+                <a class="fa-share-alt" href="#share-menu">Share</a>
+            </li>
+            
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="//google.com/search">
+                    <input type="text" name="q" placeholder="Search" />
+                    <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+<section id="menu">
+
+    
+        <section>
+            <form class="search" method="get" action="//google.com/search">
+                <input type="text" name="q" placeholder="Search" />
+                <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+            </form>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                
+                    <li>
+                        <a href="../../post">
+                            <h3>
+                                
+                                    <i class="fa fa-newspaper-o">&nbsp;</i>
+                                
+                                Posts
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../categories">
+                            <h3>
+                                
+                                Categories
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../about">
+                            <h3>
+                                
+                                About
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="http://eepurl.com/cdUha1">
+                            <h3>
+                                
+                                Subscribe
+                            </h3>
+                        </a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/"><p>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"><p>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/"><p>Going open-source in monitoring, part 0: Intro</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"><p>How to recover data from broken GlusterFS cluster</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/"><p>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</p></a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        
+</section>
+
+    <section id="share-menu">
+    <section id="social-share-nav">
+        <ul class="links">
+            <header>
+                <h3>Share this post <i class="fa fa-smile-o"></i></h3>
+            </header>
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f&text=How%20to%20run%20Functions%20in%20your%20Kubernetes%20cluster&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f&title=How%20to%20run%20Functions%20in%20your%20Kubernetes%20cluster" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f&title=How%20to%20run%20Functions%20in%20your%20Kubernetes%20cluster" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f&title=How%20to%20run%20Functions%20in%20your%20Kubernetes%20cluster" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+</section>
+
+    
+    <div id="main">
+        
+        
+        <article class="post">
+    <header>
+    <div class="title">
+        
+            <h1><a href="http://blog.lwolf.org/post/how-to-run-functions-in-your-kubernetes-cluster/">How to run Functions in your Kubernetes cluster</a></h1>
+            
+        
+        
+            <p>How to run Serverless Functions in Kubernetes cluster.</p>
+        
+    </div>
+    <div class="meta">
+        
+            
+        
+
+        <time class="published"
+            datetime='2017-01-16'>
+            January 16, 2017</time>
+        <span class="author">Sergey Nuzhdin</span>
+        
+            <p>5 minute read</p>
+        
+        
+    </div>
+</header>
+
+
+    <section id="social-share">
+        <ul class="icons">
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f&text=How%20to%20run%20Functions%20in%20your%20Kubernetes%20cluster&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f&title=How%20to%20run%20Functions%20in%20your%20Kubernetes%20cluster" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f&title=How%20to%20run%20Functions%20in%20your%20Kubernetes%20cluster" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f&title=How%20to%20run%20Functions%20in%20your%20Kubernetes%20cluster" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-run-functions-in-your-kubernetes-cluster%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+    
+    
+
+    
+        
+        
+
+
+
+
+    
+    
+        
+    
+
+
+        
+
+        <a href="http://blog.lwolf.org/post/how-to-run-functions-in-your-kubernetes-cluster/" class="image featured">
+            <img src="../../img/2017/01/ironfunctions.png" alt="" />
+        </a>
+    
+
+
+    <div id="content">
+        
+
+<h1 id="serverless-or-function-as-a-service">Serverless or Function as a Service</h1>
+
+<blockquote>
+<h3 id="what-is-serverless-faas">What is Serverless/FaaS?</h3>
+
+<p>Serverless is a new paradigm in computing that enables simplicity, efficiency and scalability for both developers and operators.</p>
+</blockquote>
+
+<p>For a long time, there was only one FaaS implementation available for Kubernetes - <a href="https://github.com/fabric8io/funktion">Funktion</a>.
+ Which I found a bit complicated and tightly coupled with the fabric8 platform.
+They claim to support functions in any language, but I found only java and nodejs examples in the repo.
+Since I&rsquo;m mostly writing on Python and Golang it&rsquo;s not very useful for me.</p>
+
+<p>From time to time I was googling for other implementations.
+Finally, at the end of the last year, I read about <a href="https://github.com/iron-io/functions">IronFunctions</a>.
+It&rsquo;s written on Golang, and really supports functions in any language.
+So, I decided to try it out.</p>
+
+<h1 id="deploying-functions-platform">Deploying Functions platform</h1>
+
+<p>Deploying IronFunctions platform is pretty straightforward.
+ Official repository has docs describing deploy to Kubernetes, Swarm and AWS Lambda.
+Kubernetes <a href="https://github.com/iron-io/functions/tree/master/docs/kubernetes">manifests</a>
+provided by IronFunction is split into two folders — testing and production.
+First one deploys single pod with all needed services encapsulated in it. The production one deploys PostgreSQL, Redis and Functions separately.
+For this post I’m going to use kubernetes-quick manifests.</p>
+
+<pre><code>git clone https://github.com/iron-io/functions
+cd functions/docs/kubernetes/kubernetes-quick
+kubectl create -f .
+</code></pre>
+
+<p>After successful deploy, we can access IronFunctions in two ways: by using CLI or cURL.
+ I’m going to use CLI for all commands in this post. You can find corresponding REST calls in the documentation.</p>
+
+<p>First, let&rsquo;s install CLI and test it out.</p>
+
+<pre><code>curl -sSL http://get.iron.io/fn | sh
+</code></pre>
+
+<p>By default, CLI expects that functions platform is available on localhost:8080.
+ So we need to either use port-forwarding or tell it to use another address:port. 
+I’m going to use port-forwarding.</p>
+
+
+<figure >
+    
+        <img src="../../img/2017/01/functions01.png" alt="Kubernetes port forwarding" />
+    
+    
+</figure>
+
+
+<p>If you can’t use port-forwarding, you should set environment variable IRON_FUNCTION.
+ And point it to your deployed functions service:</p>
+
+<pre><code>export IRON_FUNCTION=&lt;YOUR_KUBERNETES_NODE&gt;:$IRON_PORT
+</code></pre>
+
+<p>To test it out let’s try to list created applications.</p>
+
+<pre><code>&gt; $ fn apps list
+no apps found
+</code></pre>
+
+<h1 id="creating-our-first-function">Creating our first function</h1>
+
+<p>Now we are ready to write our first function. 
+For the purpose of this post, we&rsquo;re going to write a simple python function
+to post messages to Slack channel. You will need to get <a href="https://medium.com/r/?url=https%3A%2F%2Fapi.slack.com%2Fdocs%2Foauth-test-tokens">token</a> for this.</p>
+
+<p>Let&rsquo;s create <code>func.py</code></p>
+
+<pre><code>import sys
+sys.path.append(&quot;packages&quot;)
+import os
+import json
+from slacker import Slacker
+
+
+if not os.isatty(sys.stdin.fileno()):
+    obj = json.loads(sys.stdin.read() or '{}')
+    if all([x in obj for x in ['token', 'channel', 'message']]):
+        slack = Slacker(obj['token'])
+        slack.chat.post_message(obj['channel'], obj['message'])
+
+</code></pre>
+
+<p>It&rsquo;s based on one of <a href="https://github.com/iron-io/functions/tree/master/examples/hello/python">examples</a> provided by IronFunction.
+You can find a lot more of them in the repository.</p>
+
+<p>Next, we need to create func.yaml.
+This is the manifest which is used to actually build and deploy function.
+For Golang it could be generated by running fn init <a href="repo:name">repo:name</a>.</p>
+
+<pre><code>app: slackfn
+name: lwolf/fn_python
+version: 0.0.1
+build:
+- rm -Rf packages/
+- docker run --rm -v &quot;$PWD&quot;:/worker -w /worker iron/python:3-dev pip install -t packages -r requirements.txt
+
+</code></pre>
+
+<p>and Dockerfile</p>
+
+<pre><code>FROM iron/python:3.5.1
+
+WORKDIR /function
+ADD . /function/
+CMD python func.py
+
+</code></pre>
+
+<p>I decided to use python image from IronFunction because it’s the most lightweight of all.
+ And when dealing with functions —  size really matters.
+ Since its almost impossible to reduce python images below 50-60mb, it really makes sense to write functions in Golang.
+ Here is an awesome <a href="http://blog.charmes.net/2014/11/release-go-code-and-others-via-docker.html">post</a> about building production golang containers with the size around few megs.</p>
+
+
+<figure >
+    
+        <img src="../../img/2017/01/python_images.png" alt="Different python image sizes" />
+    
+    
+</figure>
+
+
+<p>Now let’s build and push our function.</p>
+
+<pre><code># build the function
+&gt; $ fn build
+# test it
+&gt; $ fn run
+# push it to Docker Hub
+&gt; $ fn push
+# create an app
+&gt; $ fn apps create slackfn
+slackfn created
+# create route
+&gt; $ fn routes create slackfn /sayit
+/sayit created with lwolf/fn_python:0.0.1
+</code></pre>
+
+<p>And let&rsquo;s test that it works.</p>
+
+<pre><code>&gt; $ echo '{&quot;token&quot;:&quot;&lt;TOKEN&gt;&quot;, &quot;channel&quot;:&quot;#testing&quot;, &quot;message&quot;:&quot;THIS IS TEST FROM MY FaaS!!!&quot;}' | fn call slackfn /sayit
+</code></pre>
+
+
+<figure >
+    
+        <img src="../../img/2017/01/slack01.png" alt="Slack bot message" />
+    
+    
+</figure>
+
+
+<p>Looks good, but sending token each time is not very usable.</p>
+
+<h1 id="configuring-application">Configuring application</h1>
+
+<p>IronFunctions provide a way to configure both application and route. It should be possible to set and unset config variables on existing apps, but, for some reason, it didn&rsquo;t work for me. So I’m going to delete and create my application.</p>
+
+<pre><code># delete routes first
+&gt; $ fn delete routes slackfn /sayit
+# delete application
+&gt; $ fn apps delete slackfn
+# now let's create new application and set our slack token in config
+fn apps create --config TOKEN=&lt;TOKEN&gt; slackfn
+</code></pre>
+
+<p>Here we go. Now let’s change our function code to get token from the config. Settings will be available as environment variable prefixed with an underscore.</p>
+
+<pre><code>import sys
+sys.path.append(&quot;packages&quot;)
+import os
+import json
+from slacker import Slacker
+
+
+if not os.isatty(sys.stdin.fileno()):
+    obj = json.loads(sys.stdin.read() or &quot;{}&quot;)
+    token = os.environ['_TOKEN']
+    if all([x in obj for x in ['channel', 'message']]):
+        slack = Slacker(token)
+        slack.chat.post_message(obj['channel'], obj['message'])
+</code></pre>
+
+<p>Let’s check it out.</p>
+
+<pre><code># bump version of container
+&gt; $ fn bump
+# build new container
+&gt; $ fn build
+# push new container to the registry
+&gt; $ fn push
+# add new route
+&gt; $ fn routes create slackfn /sayit
+</code></pre>
+
+<p>Now if we call our endpoint without token it should still work:</p>
+
+<pre><code>&gt; $ echo '{&quot;channel&quot;:&quot;#testing&quot;, &quot;message&quot;:&quot;Call with a token preconfigured in the app&quot;}' | fn call slackfn /sayit
+</code></pre>
+
+
+<figure >
+    
+        <img src="../../img/2017/01/slack02.png" alt="Slack bot message" />
+    
+    
+</figure>
+
+
+<p>This looks better, but let’s add another level of flexibility. Let’s create endpoints with preconfigured channel names.
+First, let’s change our code again. This is the final version.</p>
+
+<pre><code>import sys
+sys.path.append(&quot;packages&quot;)
+import os
+import json
+from slacker import Slacker
+
+
+if not os.isatty(sys.stdin.fileno()):
+    obj = json.loads(sys.stdin.read() or &quot;{}&quot;)
+    token = os.environ['_TOKEN']
+    channel = os.environ['_CHANNEL']
+    if all([token, channel, obj['message']]):
+        slack = Slacker(token)
+        slack.chat.post_message(channel, obj['message'])
+</code></pre>
+
+<p>And bump/build/push new container and create new routes</p>
+
+<pre><code># bump version of container
+&gt; $ fn bump
+# build new container
+&gt; $ fn build
+# push new container to the registry
+&gt; $ fn push
+# create 2 routes with preconfigured channel names
+&gt; $ fn routes create --config CHANNEL=#mychannel1 slackfn /sayit/chan1
+&gt; $ fn routes create --config CHANNEL=#mychannel2 slackfn /sayit/chan2
+
+</code></pre>
+
+<p>That’s it.
+Now we have a working serverless application in our Kubernetes cluster.
+It’s pretty simple, but shows some of the basic features.
+The only way to update route or application is by deleting and recreating it which is a bit annoying.
+And I think it will be fixed soon.</p>
+
+    </div>
+
+    <div>
+        <hr/>
+        <b>Like this post?</b> Want more? <a href="http://eepurl.com/cdUha1"><b><u>Subscribe</u></b></a> to get updates delivered straight to your inbox.
+        <hr/>
+    </div>
+    <footer>
+        <ul class="stats">
+    
+        
+
+        
+        
+            <li>
+                
+                
+                    
+
+                    
+                    
+
+                    
+
+                    
+                        Categories
+                    
+                
+            </li>
+        
+    
+
+    
+    
+        <li><a href='../../categories/docker'>docker</a></li>
+    
+        <li><a href='../../categories/infrastructure'>infrastructure</a></li>
+    
+        <li><a href='../../categories/kubernetes'>kubernetes</a></li>
+    
+        <li><a href='../../categories/k8s'>k8s</a></li>
+    
+        <li><a href='../../categories/serverless'>serverless</a></li>
+    
+        <li><a href='../../categories/devops'>devops</a></li>
+    
+        <li><a href='../../categories/faas'>FaaS</a></li>
+    
+</ul>
+
+    </footer>
+</article>
+<ul class="actions pagination">
+    
+        <li><a href="http://blog.lwolf.org/post/how-to-speed-up-builds-and-save-time-and-money/"
+                class="button big previous">How to speed up builds and save time and money</a></li>
+    
+
+    
+        <li><a href="http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/"
+                class="button big next">How to build tiny Golang docker images with Gitlab-CI</a></li>
+    
+</ul>
+
+
+
+    
+        <article class="post">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'blog-lwolf';
+    var disqus_identifier = 'http:\/\/blog.lwolf.org\/post\/how-to-run-functions-in-your-kubernetes-cluster\/';
+    var disqus_title = 'How to run Functions in your Kubernetes cluster';
+    var disqus_url = 'http:\/\/blog.lwolf.org\/post\/how-to-run-functions-in-your-kubernetes-cluster\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </article>
+    
+
+
+    </div>
+    
+<section id="sidebar">
+
+    
+        <section id="intro">
+            
+            
+                
+                    <a href="../../" class="logo"><img src="../../img/author.jpg" alt="Hugo Future Imperfect" /></a>
+                
+            
+            
+                <header>
+                    <h2>LWOLFS BLOG</h2>
+                    <p>Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc</p>
+                </header>
+            
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+        </section>
+
+    
+        <section id="recent-posts">
+            <ul class="posts">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-06-19'>
+                                    June 19, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-29'>
+                                    May 29, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/">Going open-source in monitoring, part 0: Intro</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-12'>
+                                    May 12, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/">How to recover data from broken GlusterFS cluster</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-31'>
+                                    March 31, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-30'>
+                                    March 30, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+
+                
+                    <li>
+                        <ul class="actions">
+                            <li><a href=
+                            
+                                /post/
+                            
+                            class="button">View more posts</a></li>
+                        </ul>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+    
+    
+    
+        <section id="categories">
+            <ul class="posts">
+                <header>
+                    <h3><a href="../../categories/">Categories</a></h3>
+                </header>
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/docker/">docker</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/infrastructure/">infrastructure</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/kubernetes/">kubernetes</a>
+                                <span style="float:right;">17</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/k8s/">k8s</a>
+                                <span style="float:right;">13</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/devops/">devops</a>
+                                <span style="float:right;">10</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ci/cd/">ci/cd</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/gitlab/">gitlab</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coding/">coding</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/monitoring/">monitoring</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/prometheus/">prometheus</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coreos/">coreos</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/glusterfs/">glusterfs</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/letsencrypt/">letsencrypt</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">python</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ssl/">ssl</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/storage/">storage</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/faas/">FaaS</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">Python</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/architecture/">architecture</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/golang/">golang</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/high-availability/">high-availability</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/nginx/">nginx</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/postgresql/">postgresql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/serverless/">serverless</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/sql/">sql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+            </ul>
+        </section>
+    
+
+    
+        
+        <section class="blurb">
+            <h2>About</h2>
+            <p>Some about me text...</p>
+
+            <ul class="actions">
+                <li><a href="../../about/" class="button">Learn More</a></li>
+            </ul>
+        </section>
+        
+
+    
+        <section id="footer">
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+
+            <p class="copyright">&copy; lwolfs blog. Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a>. Ported by <a href="//github.com/jpescador" target="_blank">Julio Pescador</a>. Powered by <a href="//gohugo.io" target="_blank">Hugo</a></p>
+        </section>
+
+</section>
+
+            </div>
+        <a id="back-to-top" href="#" class="fa fa-arrow-up fa-border fa-2x"></a>
+        
+
+        
+        
+            
+        
+
+        
+        
+            <script src="../../js/jquery.min.js"></script>
+            <script src="../../js/skel.min.js"></script>
+            <script src="../../js/util.js"></script>
+            <script src="../../js/main.js"></script>
+            <script src="../../js/backToTop.js"></script>
+            <script src="../../js/highlight.pack.js"></script>
+        
+
+        
+
+            
+            <script>hljs.initHighlightingOnLoad();</script>
+            
+
+            
+            <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-538070ba29aaa8d5"></script>
+
+    </body>
+</html>
+

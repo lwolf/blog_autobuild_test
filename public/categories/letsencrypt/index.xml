@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Letsencrypt on lwolfs blog</title>
+    <link>http://blog.lwolf.org/categories/letsencrypt/</link>
+    <description>Recent content in Letsencrypt on lwolfs blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 14 Jun 2016 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://blog.lwolf.org/categories/letsencrypt/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Debugging lets encrypt renewal script after backup</title>
+      <link>http://blog.lwolf.org/post/debugging-letsencrypt-renewal-script-after-backup/</link>
+      <pubDate>Tue, 14 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/debugging-letsencrypt-renewal-script-after-backup/</guid>
+      <description>I started to use letsencrypt everywhere &amp;hellip; bla-bla-bla&amp;hellip;
+After migrating one of configurations from one machine to another, I was unable to renew domain. I was getting a weird error and adding --debug did not make it more helpful.
+root@router-vm:/home/lwolf# certbot-auto renew --no-self-upgrade --debug Processing /etc/letsencrypt/renewal/domain1.conf Processing /etc/letsencrypt/renewal/domain2.conf ------------------------------------------------------------------------------- 2016-06-13 13:15:31,123:WARNING:certbot.renewal:Renewal configuration file /etc/letsencrypt/renewal/domain2.conf is broken. Skipping. ------------------------------------------------------------------------------- Processing /etc/letsencrypt/renewal/domain3.conf The following certs are not due for renewal yet: /etc/letsencrypt/live/domain1/fullchain.pem (skipped) /etc/letsencrypt/live/domain3/fullchain.</description>
+    </item>
+    
+    <item>
+      <title>Deploying Kubernetes to baremetal using tectonic</title>
+      <link>http://blog.lwolf.org/post/deploying-tectonic-to-baremetal-cluster/</link>
+      <pubDate>Tue, 14 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/deploying-tectonic-to-baremetal-cluster/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

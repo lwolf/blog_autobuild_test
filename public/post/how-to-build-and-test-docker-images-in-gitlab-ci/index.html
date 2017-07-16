@@ -1,0 +1,1293 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        
+            
+                <title>How to build and test docker images in GitLab CI.</title>
+            
+        
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content="Hugo 0.24.1" />
+        
+
+
+        
+            <meta name="author" content="Sergey Nuzhdin">
+        
+        
+            <meta name="description" content="How to configure GitLab CI to build,test and release python containers with javascript and webpack.">
+        
+
+        
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="How to build and test docker images in GitLab CI."/>
+<meta name="twitter:title" content="How to build and test docker images in GitLab CI."/>
+<meta name="twitter:description" content="How to configure GitLab CI to build,test and release python containers with javascript and webpack."/>
+
+
+        <meta property="og:title" content="How to build and test docker images in GitLab CI." />
+<meta property="og:description" content="How to configure GitLab CI to build,test and release python containers with javascript and webpack." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://blog.lwolf.org/post/how-to-build-and-test-docker-images-in-gitlab-ci/" />
+
+
+
+<meta property="article:published_time" content="2016-09-21T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2016-09-21T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+        
+<meta itemprop="name" content="How to build and test docker images in GitLab CI.">
+<meta itemprop="description" content="How to configure GitLab CI to build,test and release python containers with javascript and webpack.">
+
+
+<meta itemprop="dateModified" content="2016-09-21T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="1040">
+
+
+
+<meta itemprop="keywords" content="FaaS,Python,architecture,ci/cd,coding,coreos,devops,docker,gitlab,glusterfs,golang,high-availability,infrastructure,k8s,kubernetes,letsencrypt,monitoring,nginx,postgresql,prometheus,python,serverless,sql,ssl,storage," />
+
+        
+
+        
+
+        
+        
+            
+        
+
+        
+        
+            <link rel="stylesheet" href="../../css/google-font.css" />
+            <link rel="stylesheet" href="../../css/font-awesome.min.css" />
+            <link rel="stylesheet" href="../../css/main.css" />
+            <link rel="stylesheet" href="../../css/add-on.css" />
+            <link rel="stylesheet" href="../../css/monokai-sublime.css">
+        
+
+        
+
+        
+        
+        
+            
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47060494-2', 'auto');
+ga('send', 'pageview');
+</script>
+
+        
+    </head>
+    <body>
+
+        
+        <div id="wrapper">
+
+    
+    
+<header id="header">
+    
+        <h2><a href="../../">lwolfs blog</i></a></h2>
+    
+
+    <nav class="links">
+        <ul>
+            
+                <li>
+                    <a href="../../post">
+                        
+                            <i class="fa fa-newspaper-o">&nbsp;</i>Posts
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../categories">
+                        Categories
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../about">
+                        About
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="http://eepurl.com/cdUha1">
+                        Subscribe
+                    </a>
+                </li>
+            
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            
+            <li id="share-nav" class="share-menu" style="display:none;">
+                <a class="fa-share-alt" href="#share-menu">Share</a>
+            </li>
+            
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="//google.com/search">
+                    <input type="text" name="q" placeholder="Search" />
+                    <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+<section id="menu">
+
+    
+        <section>
+            <form class="search" method="get" action="//google.com/search">
+                <input type="text" name="q" placeholder="Search" />
+                <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+            </form>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                
+                    <li>
+                        <a href="../../post">
+                            <h3>
+                                
+                                    <i class="fa fa-newspaper-o">&nbsp;</i>
+                                
+                                Posts
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../categories">
+                            <h3>
+                                
+                                Categories
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../about">
+                            <h3>
+                                
+                                About
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="http://eepurl.com/cdUha1">
+                            <h3>
+                                
+                                Subscribe
+                            </h3>
+                        </a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/"><p>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"><p>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/"><p>Going open-source in monitoring, part 0: Intro</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"><p>How to recover data from broken GlusterFS cluster</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/"><p>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</p></a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        
+</section>
+
+    <section id="share-menu">
+    <section id="social-share-nav">
+        <ul class="links">
+            <header>
+                <h3>Share this post <i class="fa fa-smile-o"></i></h3>
+            </header>
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f&text=How%20to%20build%20and%20test%20docker%20images%20in%20GitLab%20CI.&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f&title=How%20to%20build%20and%20test%20docker%20images%20in%20GitLab%20CI." target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f&title=How%20to%20build%20and%20test%20docker%20images%20in%20GitLab%20CI." target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f&title=How%20to%20build%20and%20test%20docker%20images%20in%20GitLab%20CI." target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+</section>
+
+    
+    <div id="main">
+        
+        
+        <article class="post">
+    <header>
+    <div class="title">
+        
+            <h1><a href="http://blog.lwolf.org/post/how-to-build-and-test-docker-images-in-gitlab-ci/">How to build and test docker images in GitLab CI.</a></h1>
+            
+        
+        
+            <p>How to configure GitLab CI to build,test and release python containers with javascript and webpack.</p>
+        
+    </div>
+    <div class="meta">
+        
+            
+        
+
+        <time class="published"
+            datetime='2016-09-21'>
+            September 21, 2016</time>
+        <span class="author">Sergey Nuzhdin</span>
+        
+            <p>5 minute read</p>
+        
+        
+    </div>
+</header>
+
+
+    <section id="social-share">
+        <ul class="icons">
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f&text=How%20to%20build%20and%20test%20docker%20images%20in%20GitLab%20CI.&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f&title=How%20to%20build%20and%20test%20docker%20images%20in%20GitLab%20CI." target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f&title=How%20to%20build%20and%20test%20docker%20images%20in%20GitLab%20CI." target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f&title=How%20to%20build%20and%20test%20docker%20images%20in%20GitLab%20CI." target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-build-and-test-docker-images-in-gitlab-ci%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+    
+    
+
+    
+        
+        
+
+
+
+
+    
+    
+        
+    
+
+
+        
+
+        <a href="http://blog.lwolf.org/post/how-to-build-and-test-docker-images-in-gitlab-ci/" class="image featured">
+            <img src="../../img/2016/09/gitlab-ci.png" alt="" />
+        </a>
+    
+
+
+    <div id="content">
+        
+
+<p>In the <a href="../../post/how-to-easily-deploy-gitlab-on-kubernetes/">previous post</a> I described how to run own GitLab server with CI runner.
+In this one, I&rsquo;m going to walk through my experience of configuring GitLab-CI for one of my projects.
+I faced few problems during this process, which I will highlight in this post.</p>
+
+<p>Some words about the project:</p>
+
+<ul>
+<li>Python/Flask backend with PostgreSQL as a database, with the bunch of unittests.</li>
+<li>React/Reflux in frontend with Webpack for bundling. No JS tests.</li>
+<li>Frontend and backend are bundled in a single docker container and deployed to Kubernetes</li>
+</ul>
+
+<h2 id="building-the-first-container">Building the first container</h2>
+
+<p>First thing after importing repository into gitlab we need to create <code>.gitlab-ci.yml</code>.
+Gitlab itself has a lot of useful information about CI configuration,
+for example <a href="https://docs.gitlab.com/ce/ci/quick_start/README.html">this</a> and
+<a href="https://docs.gitlab.com/ce/ci/yaml/README.html">this</a>.</p>
+
+<p>Previously I used to do following steps to test/compile/deploy manually:</p>
+
+<ul>
+<li>npm run build - to build all js/css</li>
+<li>build.sh - to build docker container</li>
+<li>docker-compose -f docker-compose-test.yml run &ndash;rm api-test nosetests</li>
+<li>deploy.sh - to deploy it</li>
+</ul>
+
+<p>Everything is pretty common for most of the web projects.
+So, I started with a simple <code>.gitlab-ci.yml</code> file, trying to build my python code:</p>
+
+<pre><code>image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+- build
+
+variables:
+  CONTAINER_TEST_IMAGE: my-docker-hub/$CI_PROJECT_ID:$CI_BUILD_REF_NAME_test
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN my-docker-hub
+
+build:
+  stage: build
+  script:
+    - docker build --pull -t $CONTAINER_TEST_IMAGE .
+    - docker push $CONTAINER_TEST_IMAGE
+
+</code></pre>
+
+<ul>
+<li><code>$CI_BUILD_TOKEN</code> - is a password for my docker registry, saved in projects variables in GitLab project settings</li>
+</ul>
+
+<p>And it actually worked fine. I got my docker container built and pushed to the registry.
+Next step was to be able to run tests. This is where things became not so obvious.
+For testing, we need to add another stage to our gitlab-ci file.</p>
+
+<h2 id="testing-first-try">Testing. First try</h2>
+
+<p>After reading posts like <a href="https://docs.gitlab.com/ce/ci/docker/using_docker_images.html">this</a>
+I thought that it will be as easy as declaring service and adding test stage:</p>
+
+<pre><code>image: docker:latest
+
+stages:
+  - build
+  - test
+
+services:
+  - docker:dind
+  - postgres:9.5
+
+test:
+  stage: test
+  script:
+    - docker run --link=postgres:postgres $CONTAINER_TEST_IMAGE nosetests --with-coverage --cover-erase --cover-package=${CI_PROJECT_NAME} --cover-html
+</code></pre>
+
+<p>But it didn&rsquo;t work. As far as I understood it, it&rsquo;s because of docker-in-docker runner.
+Basically, we have 2 containers - docker:latest and postgresql:9.5, and they are linked perfectly fine.
+But then we&rsquo;re bootstrapping our own container, inside this docker container.
+And this container can&rsquo;t use docker links to access postgres, because its outside of its scope.</p>
+
+<h2 id="testing-second-try">Testing. Second try</h2>
+
+<p>Then I tried to use my container as and image for the test stage and service declared in test stage itself, like this:</p>
+
+<pre><code>test:
+  stage: test
+  image: $CONTAINER_TEST_IMAGE
+  services:
+    - postgres:9.5
+  script:
+    - nosetests --with-coverage --cover-erase --cover-package=${CI_PROJECT_NAME} --cover-html
+</code></pre>
+
+<p>But it also didn&rsquo;t work because of authentication.</p>
+
+<pre><code>ERROR: Preparation failed: unauthorized: authentication required
+</code></pre>
+
+<p>My docker registry needs authentication which I do in <code>before_script</code> stage. But before_script is being called after the services.
+I assume that this method should work for public images.</p>
+
+<h2 id="testing-third-try-kinda-working-solution">Testing. Third try. Kinda working solution</h2>
+
+<p>So I decided to try to use docker-compose in tests as I was doing manually since.
+Docker-compose should be able to run and link everything together.
+And since this <a href="https://docs.gitlab.com/ce/ci/docker/using_docker_build.html">page</a> in documentation says:</p>
+
+<blockquote>
+<h1 id="using-docker-build">Using Docker Build</h1>
+
+<p>GitLab CI allows you to use Docker Engine to build and test docker-based projects.</p>
+
+<p><strong>This also allows to you to use docker-compose and other docker-enabled tools.</strong></p>
+</blockquote>
+
+<p>I was very confused when I was not able to use docker-compose, since docker:latest image has no docker-compose installed.
+I spent some time googling and trying to install compose inside the container,
+and ended up using image <a href="https://hub.docker.com/r/jonaskello/docker-and-compose/">jonaskello/docker-and-compose</a> instead of the recommended one.</p>
+
+<p>So my test stage changed to this:</p>
+
+<pre><code>image: jonaskello/docker-and-compose:1.12.1-1.8.0
+...
+test:
+  stage: test
+  before_script:
+    - docker-compose -f docker-compose-test.yml pull
+    - docker-compose -f docker-compose-test.yml up -d
+  script:
+    - docker-compose -f docker-compose-test.yml run --rm api-test nosetests --with-coverage
+  after_script:
+    - docker-compose -f docker-compose-test.yml stop
+    - docker-compose -f docker-compose-test.yml rm -f
+</code></pre>
+
+<p>This actually worked, but from time to time I was seeing weird race conditions during database provisioning.
+It&rsquo;s not a big problem, and could be fixed easily. But I decided to try one more approach.</p>
+
+<h2 id="testing-final-version">Testing. Final version</h2>
+
+<p>This time I decided to run postgres container during the test stage and link it to my test container.
+This requires to provide additional configuration to postgres container, but still this way is the closest to the original services approach.</p>
+
+<pre><code>test:
+  stage: test
+  script:
+    - docker run -d --env-file=.postgres-env postgres:9.5
+    - docker run --env-file=.environment --link=postgres:db $CONTAINER_TEST_IMAGE nosetests --with-coverage --cover-erase --cover-package=${CI_PROJECT_NAME} --cover-html
+</code></pre>
+
+<h1 id="compiling-static">Compiling static</h1>
+
+<p>Now, when we have our python container built and tested we need to add one more thing.
+We need to compile our javascript and css and put it into release container.
+This stage is actually going before the build.
+To be able to use files between stages we need to use some cache.
+In my case we need to cache only one directory.
+The one where webpack produces compiled files - <code>src/static/dist</code>.</p>
+
+<pre><code>
+cache:
+  key: &quot;$CI_BUILD_REF&quot;
+  paths:
+    - src/static/dist
+
+
+compile:
+  stage: compile
+  image: iteamdev/node-webpack:latest
+  script:
+    - npm run deploy
+
+</code></pre>
+
+<p>Cache is described in more details in <a href="https://docs.gitlab.com/ce/ci/yaml/README.html#cache">official docs</a></p>
+
+<h1 id="release-stage-and-the-final-config">Release stage and the final config</h1>
+
+<p>As for release stage I&rsquo;m simply going to tag container with build number and push it back to the registry.</p>
+
+<pre><code>image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - compile
+  - build
+  - test
+  - release
+
+cache:
+  key: &quot;$CI_BUILD_REF&quot;
+  paths:
+    - src/static/dist
+
+variables:
+  STAGING_REGISTRY: &quot;my-docker-hub&quot;
+  CONTAINER_TEST_IMAGE: ${STAGING_REGISTRY}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}_test
+  CONTAINER_RELEASE_IMAGE: ${STAGING_REGISTRY}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
+
+before_script:
+  - docker login -u gitlab-ci -p $CI_BUILD_TOKEN $STAGING_REGISTRY
+
+compile:
+  stage: compile
+  image: iteamdev/node-webpack:latest
+  script:
+    - npm run deploy
+
+build:
+  stage: build
+  script:
+    - cd src
+    - docker build --pull -t $CONTAINER_TEST_IMAGE .
+    - docker push $CONTAINER_TEST_IMAGE
+
+test:
+  stage: test
+  script:
+    - docker run -d --env-file=.postgres-env postgres:9.5
+    - docker run --env-file=.environment --link=postgres:db $CONTAINER_TEST_IMAGE nosetests --with-coverage --cover-erase --cover-package=${CI_PROJECT_NAME} --cover-html
+
+release:
+  stage: release
+  script:
+    - cd src
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
+    - docker push $CONTAINER_RELEASE_IMAGE
+
+</code></pre>
+
+<p>Now we have a working CI pipeline which can build a container, run tests against <em>this</em> container and then push it to the registry.
+So far so good. The only problem is that all of this takes very long time. For my project, it takes about 20 minutes to finish all these stages.
+Most of the time is spent on building docker layers, downloading python and npm packages and installing it.
+Next post will probably be about reducing this time by using some local caching services.</p>
+
+    </div>
+
+    <div>
+        <hr/>
+        <b>Like this post?</b> Want more? <a href="http://eepurl.com/cdUha1"><b><u>Subscribe</u></b></a> to get updates delivered straight to your inbox.
+        <hr/>
+    </div>
+    <footer>
+        <ul class="stats">
+    
+        
+
+        
+        
+            <li>
+                
+                
+                    
+
+                    
+                    
+
+                    
+
+                    
+                        Categories
+                    
+                
+            </li>
+        
+    
+
+    
+    
+        <li><a href='../../categories/docker'>docker</a></li>
+    
+        <li><a href='../../categories/infrastructure'>infrastructure</a></li>
+    
+        <li><a href='../../categories/ci/cd'>ci/cd</a></li>
+    
+        <li><a href='../../categories/gitlab'>gitlab</a></li>
+    
+        <li><a href='../../categories/devops'>devops</a></li>
+    
+</ul>
+
+    </footer>
+</article>
+<ul class="actions pagination">
+    
+        <li><a href="http://blog.lwolf.org/post/how-to-easily-deploy-gitlab-on-kubernetes/"
+                class="button big previous">How to easily deploy GitLab on Kubernetes</a></li>
+    
+
+    
+        <li><a href="http://blog.lwolf.org/post/continuous-deployment-to-kubernetes-from-gitlab-ci/"
+                class="button big next">Continuous deployment to Kubernetes from GitLab-CI.</a></li>
+    
+</ul>
+
+
+
+    
+        <article class="post">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'blog-lwolf';
+    var disqus_identifier = 'http:\/\/blog.lwolf.org\/post\/how-to-build-and-test-docker-images-in-gitlab-ci\/';
+    var disqus_title = 'How to build and test docker images in GitLab CI.';
+    var disqus_url = 'http:\/\/blog.lwolf.org\/post\/how-to-build-and-test-docker-images-in-gitlab-ci\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </article>
+    
+
+
+    </div>
+    
+<section id="sidebar">
+
+    
+        <section id="intro">
+            
+            
+                
+                    <a href="../../" class="logo"><img src="../../img/author.jpg" alt="Hugo Future Imperfect" /></a>
+                
+            
+            
+                <header>
+                    <h2>LWOLFS BLOG</h2>
+                    <p>Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc</p>
+                </header>
+            
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+        </section>
+
+    
+        <section id="recent-posts">
+            <ul class="posts">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-06-19'>
+                                    June 19, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-29'>
+                                    May 29, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/">Going open-source in monitoring, part 0: Intro</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-12'>
+                                    May 12, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/">How to recover data from broken GlusterFS cluster</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-31'>
+                                    March 31, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-30'>
+                                    March 30, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+
+                
+                    <li>
+                        <ul class="actions">
+                            <li><a href=
+                            
+                                /post/
+                            
+                            class="button">View more posts</a></li>
+                        </ul>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+    
+    
+    
+        <section id="categories">
+            <ul class="posts">
+                <header>
+                    <h3><a href="../../categories/">Categories</a></h3>
+                </header>
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/docker/">docker</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/infrastructure/">infrastructure</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/kubernetes/">kubernetes</a>
+                                <span style="float:right;">17</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/k8s/">k8s</a>
+                                <span style="float:right;">13</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/devops/">devops</a>
+                                <span style="float:right;">10</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ci/cd/">ci/cd</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/gitlab/">gitlab</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coding/">coding</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/monitoring/">monitoring</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/prometheus/">prometheus</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coreos/">coreos</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/glusterfs/">glusterfs</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/letsencrypt/">letsencrypt</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">python</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ssl/">ssl</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/storage/">storage</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/faas/">FaaS</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">Python</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/architecture/">architecture</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/golang/">golang</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/high-availability/">high-availability</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/nginx/">nginx</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/postgresql/">postgresql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/serverless/">serverless</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/sql/">sql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+            </ul>
+        </section>
+    
+
+    
+        
+        <section class="blurb">
+            <h2>About</h2>
+            <p>Some about me text...</p>
+
+            <ul class="actions">
+                <li><a href="../../about/" class="button">Learn More</a></li>
+            </ul>
+        </section>
+        
+
+    
+        <section id="footer">
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+
+            <p class="copyright">&copy; lwolfs blog. Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a>. Ported by <a href="//github.com/jpescador" target="_blank">Julio Pescador</a>. Powered by <a href="//gohugo.io" target="_blank">Hugo</a></p>
+        </section>
+
+</section>
+
+            </div>
+        <a id="back-to-top" href="#" class="fa fa-arrow-up fa-border fa-2x"></a>
+        
+
+        
+        
+            
+        
+
+        
+        
+            <script src="../../js/jquery.min.js"></script>
+            <script src="../../js/skel.min.js"></script>
+            <script src="../../js/util.js"></script>
+            <script src="../../js/main.js"></script>
+            <script src="../../js/backToTop.js"></script>
+            <script src="../../js/highlight.pack.js"></script>
+        
+
+        
+
+            
+            <script>hljs.initHighlightingOnLoad();</script>
+            
+
+            
+            <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-538070ba29aaa8d5"></script>
+
+    </body>
+</html>
+

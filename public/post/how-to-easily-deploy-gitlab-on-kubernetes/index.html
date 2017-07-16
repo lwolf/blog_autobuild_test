@@ -1,0 +1,1340 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        
+            
+                <title>How to easily deploy GitLab on Kubernetes</title>
+            
+        
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content="Hugo 0.24.1" />
+        
+
+
+        
+            <meta name="author" content="Sergey Nuzhdin">
+        
+        
+            <meta name="description" content="How to easily deploy GitLab with GitLab CI to Kubernetes cluster">
+        
+
+        
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="How to easily deploy GitLab on Kubernetes"/>
+<meta name="twitter:title" content="How to easily deploy GitLab on Kubernetes"/>
+<meta name="twitter:description" content="How to easily deploy GitLab with GitLab CI to Kubernetes cluster"/>
+
+
+        <meta property="og:title" content="How to easily deploy GitLab on Kubernetes" />
+<meta property="og:description" content="How to easily deploy GitLab with GitLab CI to Kubernetes cluster" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://blog.lwolf.org/post/how-to-easily-deploy-gitlab-on-kubernetes/" />
+
+
+
+<meta property="article:published_time" content="2016-09-08T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2016-09-08T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+        
+<meta itemprop="name" content="How to easily deploy GitLab on Kubernetes">
+<meta itemprop="description" content="How to easily deploy GitLab with GitLab CI to Kubernetes cluster">
+
+
+<meta itemprop="dateModified" content="2016-09-08T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="1260">
+
+
+
+<meta itemprop="keywords" content="FaaS,Python,architecture,ci/cd,coding,coreos,devops,docker,gitlab,glusterfs,golang,high-availability,infrastructure,k8s,kubernetes,letsencrypt,monitoring,nginx,postgresql,prometheus,python,serverless,sql,ssl,storage," />
+
+        
+
+        
+
+        
+        
+            
+        
+
+        
+        
+            <link rel="stylesheet" href="../../css/google-font.css" />
+            <link rel="stylesheet" href="../../css/font-awesome.min.css" />
+            <link rel="stylesheet" href="../../css/main.css" />
+            <link rel="stylesheet" href="../../css/add-on.css" />
+            <link rel="stylesheet" href="../../css/monokai-sublime.css">
+        
+
+        
+
+        
+        
+        
+            
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47060494-2', 'auto');
+ga('send', 'pageview');
+</script>
+
+        
+    </head>
+    <body>
+
+        
+        <div id="wrapper">
+
+    
+    
+<header id="header">
+    
+        <h2><a href="../../">lwolfs blog</i></a></h2>
+    
+
+    <nav class="links">
+        <ul>
+            
+                <li>
+                    <a href="../../post">
+                        
+                            <i class="fa fa-newspaper-o">&nbsp;</i>Posts
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../categories">
+                        Categories
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../about">
+                        About
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="http://eepurl.com/cdUha1">
+                        Subscribe
+                    </a>
+                </li>
+            
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            
+            <li id="share-nav" class="share-menu" style="display:none;">
+                <a class="fa-share-alt" href="#share-menu">Share</a>
+            </li>
+            
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="//google.com/search">
+                    <input type="text" name="q" placeholder="Search" />
+                    <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+<section id="menu">
+
+    
+        <section>
+            <form class="search" method="get" action="//google.com/search">
+                <input type="text" name="q" placeholder="Search" />
+                <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+            </form>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                
+                    <li>
+                        <a href="../../post">
+                            <h3>
+                                
+                                    <i class="fa fa-newspaper-o">&nbsp;</i>
+                                
+                                Posts
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../categories">
+                            <h3>
+                                
+                                Categories
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../about">
+                            <h3>
+                                
+                                About
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="http://eepurl.com/cdUha1">
+                            <h3>
+                                
+                                Subscribe
+                            </h3>
+                        </a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/"><p>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"><p>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/"><p>Going open-source in monitoring, part 0: Intro</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"><p>How to recover data from broken GlusterFS cluster</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/"><p>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</p></a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        
+</section>
+
+    <section id="share-menu">
+    <section id="social-share-nav">
+        <ul class="links">
+            <header>
+                <h3>Share this post <i class="fa fa-smile-o"></i></h3>
+            </header>
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f&text=How%20to%20easily%20deploy%20GitLab%20on%20Kubernetes&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f&title=How%20to%20easily%20deploy%20GitLab%20on%20Kubernetes" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f&title=How%20to%20easily%20deploy%20GitLab%20on%20Kubernetes" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f&title=How%20to%20easily%20deploy%20GitLab%20on%20Kubernetes" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+</section>
+
+    
+    <div id="main">
+        
+        
+        <article class="post">
+    <header>
+    <div class="title">
+        
+            <h1><a href="http://blog.lwolf.org/post/how-to-easily-deploy-gitlab-on-kubernetes/">How to easily deploy GitLab on Kubernetes</a></h1>
+            
+        
+        
+            <p>How to easily deploy GitLab with GitLab CI to Kubernetes cluster</p>
+        
+    </div>
+    <div class="meta">
+        
+            
+        
+
+        <time class="published"
+            datetime='2016-09-08'>
+            September 8, 2016</time>
+        <span class="author">Sergey Nuzhdin</span>
+        
+            <p>6 minute read</p>
+        
+        
+    </div>
+</header>
+
+
+    <section id="social-share">
+        <ul class="icons">
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f&text=How%20to%20easily%20deploy%20GitLab%20on%20Kubernetes&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f&title=How%20to%20easily%20deploy%20GitLab%20on%20Kubernetes" target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f&title=How%20to%20easily%20deploy%20GitLab%20on%20Kubernetes" target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f&title=How%20to%20easily%20deploy%20GitLab%20on%20Kubernetes" target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fhow-to-easily-deploy-gitlab-on-kubernetes%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+    
+    
+
+    
+        
+        
+
+
+
+
+    
+    
+        
+    
+
+
+        
+
+        <a href="http://blog.lwolf.org/post/how-to-easily-deploy-gitlab-on-kubernetes/" class="image featured">
+            <img src="../../img/2016/09/k8s-gitlab.png" alt="" />
+        </a>
+    
+
+
+    <div id="content">
+        
+
+<p>I spent some time recently researching how to build CI/CD
+pipeline to automate testing and deploying.
+Since I&rsquo;m developing everything in containers and use Kubernetes
+to manage it GitLab with its CI runners and recent integrations with k8s
+seemed like a good option.</p>
+
+<p>In this post, I will describe the steps needed to get GitLab
+with GitLab Runner, up and running on top of Kubernetes.</p>
+
+<p>All manifests used in this post could be found <a href="https://github.com/lwolf/kubernetes-gitlab">here</a></p>
+
+<blockquote>
+<p>Update 2017-02-27:</p>
+
+<p>You may be interested in <strong>automated version</strong> of this manifests</p>
+
+<p><a href="http://blog.lwolf.org/post/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry/">http://blog.lwolf.org/post/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry/</a></p>
+</blockquote>
+
+<h2 id="prerequisites">Prerequisites:</h2>
+
+<ol>
+<li>All configurations are assuming deployment to namespace <em>gitlab</em></li>
+<li>Domain names used in this post are git.example.com for web and ssh-git.example.com for ssh.</li>
+<li>All pods are configured without any persistent storage. Change <code>emptyDir: {}</code> everywhere to something persistent.</li>
+<li>Most of GitLab related configurations are set in gitlab/gitlab-deployment.yml and have to be changed.</li>
+</ol>
+
+<h2 id="deploying-gitlab">Deploying GitLab</h2>
+
+<p>First, we will create a separate namespace and deploy PostgreSQL and Redis instances.</p>
+
+<pre><code>kubectl create -f gitlab-ns.yml
+
+kubectl create -f gitlab/redis-svc.yml
+kubectl create -f gitlab/redis-deployment.yml
+
+
+kubectl create -f gitlab/postgresql-svc.yml
+kubectl create -f gitlab/postgresql-deployment.yml
+
+</code></pre>
+
+<p>PostgreSQL password is set inside postgresql-deployment.yml manifest.
+Check <code>kubectl get pods --namespace=gitlab</code> and wait until all pods a ready.
+After this, we can deploy GitLab itself.</p>
+
+<pre><code>kubectl create -f gitlab/gitlab-svc.yml
+kubectl create -f gitlab/gitlab-svc-nodeport.yml
+kubectl create -f gitlab/gitlab-deployment.yml
+</code></pre>
+
+<p>Since I&rsquo;m deploying it on baremetal cluster, I don&rsquo;t have any loadbalancer yet, that&rsquo;s why I have second service manifest.
+In case you&rsquo;re doing it in the cloud - you can skip deploy of <code>gitlab-svc-nodeport.yml</code>.</p>
+
+<p>Let&rsquo;s test that everything works so far.
+To access our GitLab instance we need to know node port on which it was deployed.
+It&rsquo;s usually printed when you deploy NodePort service like this:</p>
+
+<pre><code>&gt; $ kubectl create -f gitlab/gitlab-svc-nodeport.yml
+You have exposed your service on an external port on all nodes in your
+cluster.  If you want to expose this service to the external internet, you may
+need to set up firewall rules for the service port(s) (tcp:30836,tcp:31447) to serve traffic.
+
+See http://releases.k8s.io/release-1.3/docs/user-guide/services-firewalls.md for more details.
+service &quot;gitlab-nodeport&quot; created
+</code></pre>
+
+<p>In case you didn&rsquo;t write it down somewhere, you always can inspect your deployed service:</p>
+
+<pre><code>&gt; $ kubectl describe svc gitlab-nodeport --namespace=gitlab
+Name:           gitlab-nodeport
+Namespace:      gitlab
+Labels:         name=gitlab
+Selector:       name=gitlab
+Type:           NodePort
+IP:             10.3.0.127
+Port:           ssh 22/TCP
+NodePort:       ssh 30836/TCP
+Endpoints:      10.2.47.9:22
+Port:           http    80/TCP
+NodePort:       http    31447/TCP
+Endpoints:      10.2.47.9:80
+Session Affinity:   None
+No events.
+</code></pre>
+
+<p>Now we know that GitLab&rsquo;s web interface is available on port 31447.
+Navigate your browser to <a href="http://any-of-your-kuberntes-node:31447/">http://any-of-your-kuberntes-node:31447/</a> and behold GitLab.</p>
+
+
+<figure >
+    
+        <img src="../../img/2016/09/gitlab-homepage.png" alt="Gitlab homepage" />
+    
+    
+</figure>
+
+
+<p>You can log in using login <strong>root</strong>, password <strong>root</strong> or whatever you set in the deployment manifest.
+Awesome, next step is to configure ingress to be able to access it through human readable URL.</p>
+
+<h3 id="ingress">Ingress</h3>
+
+<blockquote>
+<p>An Ingress is a collection of rules that allow inbound connections to reach the cluster services.
+It can be configured to give services externally-reachable urls, load balance traffic, terminate SSL, offer name based virtual hosting etc.</p>
+</blockquote>
+
+<p>My configuration is based mostly on official examples from <a href="https://github.com/kubernetes/contrib/tree/master/ingress/controllers/nginx">kubernetes/contrib</a>
+All ingress-related manifests are located at <code>ingress</code> directory.
+Basically, it&rsquo;s just a few files:</p>
+
+<ul>
+<li><em>default-backend.yml</em> - a container that is served when DNS record is not handled by any of the ingress rules.</li>
+<li><em>configmap.yml</em> - config map with a list of ports and destinations we want to handle.</li>
+<li><em>nginx-ingress-lb.yml</em> - actual Nginx-based ingress-controller configured to handle traffic on ports 80,443,22</li>
+<li><em>gitlab-ingress.yml</em> - ingress rules for our GitLab instance</li>
+</ul>
+
+<pre><code>kubectl create -f ingress/default-backend.yml
+kubectl create -f ingress/configmap.yml
+kubectl create -f ingress/nginx-ingress-lb.yml
+kubectl create -f ingress/gitlab-ingress.yml
+</code></pre>
+
+<p>After this is in place and assuming that DNS is properly configured,
+we should be able to access GitLab on <a href="http://git.example.com">http://git.example.com</a>.</p>
+
+<p>Now, let&rsquo;s deploy one GitLab Runner to be able to run tests.</p>
+
+<h3 id="gitlab-runner">GitLab Runner</h3>
+
+<p><a href="https://gitlab.com/gitlab-org/gitlab-ci-multi-runner">GitLab Runner</a> supports several executors: virtualbox, docker+machine, docker-ssh+machine, docker, docker-ssh, parallels, shell, ssh.
+Unfortunately, support for native Kubernetes executor is in progress now and is not ready yet. I spent few hours trying to make it work without success.
+That&rsquo;s why for now we&rsquo;re going to use simple docker executor.</p>
+
+<p>Since most of the <a href="https://gitlab.com/gitlab-org/gitlab-ci-multi-runner/blob/master/docs/install/autoscaling.md">manuals</a>
+ are suggesting to use <a href="https://www.minio.io/">minio</a> as cache server let&rsquo;s deploy one.</p>
+
+<pre><code>kubectl create -f minio/minio-svc.yml
+kubectl create -f minio/minio-deployment.yml
+</code></pre>
+
+<p>Let&rsquo;s make sure that pod is running:</p>
+
+<pre><code>kubectl get pods --namespace=gitlab
+
+gitlab   minio-2719559383-y9hl2    1/1    Running   0   1m
+</code></pre>
+
+<p>After it became up and running, we need to check logs to get token and secret:</p>
+
+<pre><code>&gt; $ kubectl logs -f minio-2719559383-y9hl2 --namespace=gitlab
++ exec app server /export
+
+Endpoint:  http://10.2.23.7:9000  http://127.0.0.1:9000
+AccessKey: 9HRGG3EK2DD0GP2HBB53
+SecretKey: zr+tKa6fS4/3PhYKWekJs65tRh8pbVl07cQlJfkW
+Region:    us-east-1
+
+Browser Access:
+   http://10.2.23.7:9000  http://127.0.0.1:9000
+
+Command-line Access: https://docs.minio.io/docs/minio-client-quickstart-guide
+   $ mc config host add myminio http://10.2.23.7:9000 9HRGG3EK2DD0GP2HBB53 zr+tKa6fS4/3PhYKWekJs65tRh8pbVl07cQlJfkW
+
+Object API (Amazon S3 compatible):
+   Go:         https://docs.minio.io/docs/golang-client-quickstart-guide
+   Java:       https://docs.minio.io/docs/java-client-quickstart-guide
+   Python:     https://docs.minio.io/docs/python-client-quickstart-guide
+   JavaScript: https://docs.minio.io/docs/javascript-client-quickstart-guide
+</code></pre>
+
+<p>We will need to copy <code>AccessKey</code> and <code>SecretKey</code> from this response and save it. It will be needed later to populate our runner.
+One more thing needs to be done with minio. We need to create a bucket.</p>
+
+<p>To do this we have 2 choices.</p>
+
+<p>First is to create directory directly on the filesystem, like this:</p>
+
+<pre><code>kubectl exec -it minio-2719559383-y9hl2 --namespace=gitlab -- bash -c 'mkdir /export/runner'
+</code></pre>
+
+<p>Second is to do it through the web interface. For this, we first need to port-forward minio to our machine</p>
+
+<pre><code>kubectl port-forward minio-2719559383-y9hl2 9000:9000 --namespace=gitlab
+</code></pre>
+
+<p>and then navigate a browser to <a href="http://localhost:9000">http://localhost:9000</a>, log in with key and secret we have, and create a bucket named <em>runner</em>.</p>
+
+
+<figure >
+    
+        <img src="../../img/2016/09/minio-homepage.png" alt="Minio web interface" />
+    
+    
+</figure>
+
+
+<p>Before we can actually deploy our runner we need to register it in GitLab.
+I found it more convenient to register it first and then save token to configmap.</p>
+
+<p>For registration, we need to obtain GitLab&rsquo;s own token.
+To get it, login into GitLab as root, and navigate to <em>admin area</em>.
+Then go to <em>Overview -&gt; Runners</em> and copy your registration token</p>
+
+
+<figure >
+    
+        <img src="../../img/2016/09/gitlab-runner-token.png" alt="GitLab runner page" />
+    
+    
+</figure>
+
+
+<p>Now we need to configure and register runner.
+We are going to use <code>kubectl run</code> command for this. It will create deployment, run default command with argument <code>register</code> in interactive mode.</p>
+
+<pre><code>&gt; $ kubectl run -it runner-registrator --image=gitlab/gitlab-runner:v1.5.2 --restart=Never -- register
+Waiting for pod default/runner-registrator-1573168835-tmlom to be running, status is Pending, pod ready: false
+
+Hit enter for command prompt
+
+Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com/ci):
+http://gitlab.gitlab/ci
+Please enter the gitlab-ci token for this runner:
+_TBBy-zRLk7ac1jZfnPu
+Please enter the gitlab-ci description for this runner:
+[runner-registrator-1573168835-tmlom]: gitlab-docker-runner
+Please enter the gitlab-ci tags for this runner (comma separated):
+shared,specific
+Registering runner... succeeded                     runner=_TBBy-zR
+Please enter the executor: virtualbox, docker+machine, docker-ssh+machine, docker, docker-ssh, parallels, shell, ssh:
+docker
+Please enter the default Docker image (eg. ruby:2.1):
+python:3.5.1
+Runner registered successfully. Feel free to start it, but if it's running already the config should be automatically reloaded!
+Session ended, resume using 'kubectl attach runner-registrator-1573168835-tmlom -c runner-registrator -i -t' command when the pod is running
+
+&gt; kubectl delete deployment/runner-registrator
+
+</code></pre>
+
+<p>After answering all questions you should find your runner in the list of runners in the admin area.
+Click on it and copy generated token and paste it into <code>gitlab-runner/gitlab-runner-docker-configmap.yml</code>
+Also, you need to fill in information about your minio installation.</p>
+
+<pre><code>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitlab-runner-docker
+  namespace: gitlab
+data:
+  config.toml: |
+    concurrent = 4
+    check_interval = 1
+
+    [[runners]]
+      name = &quot;gitlab-docker-runner&quot;
+      url = &quot;http://gitlab.gitlab/ci&quot;
+      token = &lt;GENERATED TOKEN&gt;
+      executor = &quot;docker&quot;
+      [runners.docker]
+        tls_verify = false
+        image = &quot;python:3.5&quot;
+        privileged = true
+        disable_cache = false
+        volumes = [&quot;/cache&quot;]
+      [runners.cache]
+        Type = &quot;s3&quot;
+        ServerAddress = &quot;minio.gitlab&quot;
+        AccessKey = &lt;YOUR MINIO ACCESS KEY&gt;
+        SecretKey = &lt;YOUR MINIO SECRET KEY&gt;
+        BucketName = &quot;runner&quot;
+
+</code></pre>
+
+<p>The last step is to actually deploy GitLab Runner itself.</p>
+
+<pre><code>kubectl create -f gitlab-runner/gitlab-runner-docker-configmap.yml
+kubectl create -f gitlab-runner/gitlab-runner-docker-deployment.yml
+</code></pre>
+
+<p>That&rsquo;s it, now we have GitLab up and running with CI configured.
+To test it we can import <a href="https://gitlab.com/gitlab-examples/docker.git">test repository</a>
+and run the pipeline.</p>
+
+    </div>
+
+    <div>
+        <hr/>
+        <b>Like this post?</b> Want more? <a href="http://eepurl.com/cdUha1"><b><u>Subscribe</u></b></a> to get updates delivered straight to your inbox.
+        <hr/>
+    </div>
+    <footer>
+        <ul class="stats">
+    
+        
+
+        
+        
+            <li>
+                
+                
+                    
+
+                    
+                    
+
+                    
+
+                    
+                        Categories
+                    
+                
+            </li>
+        
+    
+
+    
+    
+        <li><a href='../../categories/docker'>docker</a></li>
+    
+        <li><a href='../../categories/infrastructure'>infrastructure</a></li>
+    
+        <li><a href='../../categories/kubernetes'>kubernetes</a></li>
+    
+        <li><a href='../../categories/k8s'>k8s</a></li>
+    
+        <li><a href='../../categories/ci/cd'>ci/cd</a></li>
+    
+        <li><a href='../../categories/gitlab'>gitlab</a></li>
+    
+        <li><a href='../../categories/devops'>devops</a></li>
+    
+</ul>
+
+    </footer>
+</article>
+<ul class="actions pagination">
+    
+        <li><a href="http://blog.lwolf.org/post/bootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube/"
+                class="button big previous">Bootstrapping CoreOS cluster with Kubernetes in 20 minutes using coreos-baremental and bootkube</a></li>
+    
+
+    
+        <li><a href="http://blog.lwolf.org/post/how-to-build-and-test-docker-images-in-gitlab-ci/"
+                class="button big next">How to build and test docker images in GitLab CI.</a></li>
+    
+</ul>
+
+
+
+    
+        <article class="post">
+            <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'blog-lwolf';
+    var disqus_identifier = 'http:\/\/blog.lwolf.org\/post\/how-to-easily-deploy-gitlab-on-kubernetes\/';
+    var disqus_title = 'How to easily deploy GitLab on Kubernetes';
+    var disqus_url = 'http:\/\/blog.lwolf.org\/post\/how-to-easily-deploy-gitlab-on-kubernetes\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </article>
+    
+
+
+    </div>
+    
+<section id="sidebar">
+
+    
+        <section id="intro">
+            
+            
+                
+                    <a href="../../" class="logo"><img src="../../img/author.jpg" alt="Hugo Future Imperfect" /></a>
+                
+            
+            
+                <header>
+                    <h2>LWOLFS BLOG</h2>
+                    <p>Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc</p>
+                </header>
+            
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+        </section>
+
+    
+        <section id="recent-posts">
+            <ul class="posts">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-06-19'>
+                                    June 19, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-29'>
+                                    May 29, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/">Going open-source in monitoring, part 0: Intro</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-12'>
+                                    May 12, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/">How to recover data from broken GlusterFS cluster</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-31'>
+                                    March 31, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-30'>
+                                    March 30, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+
+                
+                    <li>
+                        <ul class="actions">
+                            <li><a href=
+                            
+                                /post/
+                            
+                            class="button">View more posts</a></li>
+                        </ul>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+    
+    
+    
+        <section id="categories">
+            <ul class="posts">
+                <header>
+                    <h3><a href="../../categories/">Categories</a></h3>
+                </header>
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/docker/">docker</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/infrastructure/">infrastructure</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/kubernetes/">kubernetes</a>
+                                <span style="float:right;">17</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/k8s/">k8s</a>
+                                <span style="float:right;">13</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/devops/">devops</a>
+                                <span style="float:right;">10</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ci/cd/">ci/cd</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/gitlab/">gitlab</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coding/">coding</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/monitoring/">monitoring</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/prometheus/">prometheus</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coreos/">coreos</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/glusterfs/">glusterfs</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/letsencrypt/">letsencrypt</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">python</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ssl/">ssl</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/storage/">storage</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/faas/">FaaS</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">Python</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/architecture/">architecture</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/golang/">golang</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/high-availability/">high-availability</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/nginx/">nginx</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/postgresql/">postgresql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/serverless/">serverless</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/sql/">sql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+            </ul>
+        </section>
+    
+
+    
+        
+        <section class="blurb">
+            <h2>About</h2>
+            <p>Some about me text...</p>
+
+            <ul class="actions">
+                <li><a href="../../about/" class="button">Learn More</a></li>
+            </ul>
+        </section>
+        
+
+    
+        <section id="footer">
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+
+            <p class="copyright">&copy; lwolfs blog. Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a>. Ported by <a href="//github.com/jpescador" target="_blank">Julio Pescador</a>. Powered by <a href="//gohugo.io" target="_blank">Hugo</a></p>
+        </section>
+
+</section>
+
+            </div>
+        <a id="back-to-top" href="#" class="fa fa-arrow-up fa-border fa-2x"></a>
+        
+
+        
+        
+            
+        
+
+        
+        
+            <script src="../../js/jquery.min.js"></script>
+            <script src="../../js/skel.min.js"></script>
+            <script src="../../js/util.js"></script>
+            <script src="../../js/main.js"></script>
+            <script src="../../js/backToTop.js"></script>
+            <script src="../../js/highlight.pack.js"></script>
+        
+
+        
+
+            
+            <script>hljs.initHighlightingOnLoad();</script>
+            
+
+            
+            <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-538070ba29aaa8d5"></script>
+
+    </body>
+</html>
+
