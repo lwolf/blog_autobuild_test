@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ci/cd on lwolfs blog</title>
+    <link>http://blog.lwolf.org/categories/ci/cd/</link>
+    <description>Recent content in Ci/cd on lwolfs blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 30 Mar 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://blog.lwolf.org/categories/ci/cd/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</title>
+      <link>http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/</link>
+      <pubDate>Thu, 30 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/</guid>
+      <description>Since my previous posts[1][2] about CI/CD, a lot have changed. I started using Helm for packaging applications, stopped using docker-in-docker in gitlab-runner.
+Recently, I started working on a few Golang microservices. I decided to try gitlab’s caching and split the job into multiple steps for better feedback in UI.
+Few of the main changes to my .gitlab-ci.yaml file since my previous post:
+ no docker-in-docker using cache for packages instead of a prebuilt image with dependencies splitting everything into multiple steps.</description>
+    </item>
+    
+    <item>
+      <title>Fully automated GitLab installation on Kubernetes including runner and docker registry</title>
+      <link>http://blog.lwolf.org/post/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry/</link>
+      <pubDate>Mon, 27 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/fully-automated-gitlab-installation-on-kubernetes-including-runner-and-registry/</guid>
+      <description>After my previous post - How to easily deploy GitLab to Kubernetes - I’ve got a lot of responses. I helped several people to get GitLab up and running on their clusters. With that manifests it became much easier to deploy GitLab to Kubernetes. It was still few things that were usually misunderstood and misconfigured. You can find out these things only by talking with people who are actually trying to use your work.</description>
+    </item>
+    
+    <item>
+      <title>How to build tiny Golang docker images with Gitlab-CI</title>
+      <link>http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/</link>
+      <pubDate>Mon, 06 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/</guid>
+      <description>This post will show how to build Golang docker containers using Gitlab-CI. It&amp;rsquo;s the sequel of my previous posts about building and optimizing docker containers.
+I’ve written a small microservice in Golang, and I needed to configure my GitLab to auto build it. It uses Glide as a package manager for Go.
+My directory tree for this project looks like this:
+ &amp;gt; $ tree ├── Dockerfile ├── build_base.sh ├── glide.</description>
+    </item>
+    
+    <item>
+      <title>How to speed up builds and save time and money</title>
+      <link>http://blog.lwolf.org/post/how-to-speed-up-builds-and-save-time-and-money/</link>
+      <pubDate>Thu, 01 Dec 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-speed-up-builds-and-save-time-and-money/</guid>
+      <description>In one of the previous posts, I described the way I&amp;rsquo;m using GitLab to build and test images. Despite the fact that it&amp;rsquo;s pretty simple configuration and actual tests are run for less than a minute, complete pipeline takes around 20 minutes. Which seems very unreasonable. I spent some time digging out the problem and was able to reduce build time to around 3 minutes.
+Here are few things, that should be considered to optimize pipeline.</description>
+    </item>
+    
+    <item>
+      <title>Continuous deployment to Kubernetes from GitLab-CI.</title>
+      <link>http://blog.lwolf.org/post/continuous-deployment-to-kubernetes-from-gitlab-ci/</link>
+      <pubDate>Mon, 10 Oct 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/continuous-deployment-to-kubernetes-from-gitlab-ci/</guid>
+      <description>In my previous posts I described how to deploy GitLab to Kubernetes and configure GitLab-CI to build and test docker containers. In this one, I&amp;rsquo;m going to write about continues deployments. I assume that you already have Kubernetes cluster and application running, and you have some manual way of deploying your application to it. So I will not touch the basics of writing Kubernetes manifests. But I will briefly describe my own scripts and show how I configured GitLab-CI to automate deployment.</description>
+    </item>
+    
+    <item>
+      <title>How to build and test docker images in GitLab CI.</title>
+      <link>http://blog.lwolf.org/post/how-to-build-and-test-docker-images-in-gitlab-ci/</link>
+      <pubDate>Wed, 21 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-build-and-test-docker-images-in-gitlab-ci/</guid>
+      <description>In the previous post I described how to run own GitLab server with CI runner. In this one, I&amp;rsquo;m going to walk through my experience of configuring GitLab-CI for one of my projects. I faced few problems during this process, which I will highlight in this post.
+Some words about the project:
+ Python/Flask backend with PostgreSQL as a database, with the bunch of unittests. React/Reflux in frontend with Webpack for bundling.</description>
+    </item>
+    
+    <item>
+      <title>How to easily deploy GitLab on Kubernetes</title>
+      <link>http://blog.lwolf.org/post/how-to-easily-deploy-gitlab-on-kubernetes/</link>
+      <pubDate>Thu, 08 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-easily-deploy-gitlab-on-kubernetes/</guid>
+      <description>I spent some time recently researching how to build CI/CD pipeline to automate testing and deploying. Since I&amp;rsquo;m developing everything in containers and use Kubernetes to manage it GitLab with its CI runners and recent integrations with k8s seemed like a good option.
+In this post, I will describe the steps needed to get GitLab with GitLab Runner, up and running on top of Kubernetes.
+All manifests used in this post could be found here</description>
+    </item>
+    
+  </channel>
+</rss>

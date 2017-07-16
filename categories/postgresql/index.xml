@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Postgresql on lwolfs blog</title>
+    <link>http://blog.lwolf.org/categories/postgresql/</link>
+    <description>Recent content in Postgresql on lwolfs blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 06 Mar 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://blog.lwolf.org/categories/postgresql/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>How to deploy HA PostgreSQL cluster on Kubernetes</title>
+      <link>http://blog.lwolf.org/post/how-to-deploy-ha-postgressql-cluster-on-kubernetes/</link>
+      <pubDate>Mon, 06 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-deploy-ha-postgressql-cluster-on-kubernetes/</guid>
+      <description>Creating a high available PostgreSQL cluster always was a tricky task. Doing it in the cloud environment is especially difficult. I found at least 3 projects trying to provide HA PostgreSQL solutions for Kubernetes.
+Patroni
+ Patroni is a template for you to create your own customized, high-availability solution using Python and - for maximum accessibility - a distributed configuration store like ZooKeeper, etcd or Consul. Database engineers, DBAs, DevOps engineers, and SREs who are looking to quickly deploy HA PostgreSQL in the datacenter - or anywhere else - will hopefully find it useful.</description>
+    </item>
+    
+  </channel>
+</rss>

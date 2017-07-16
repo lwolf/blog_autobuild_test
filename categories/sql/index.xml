@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Sql on lwolfs blog</title>
+    <link>http://blog.lwolf.org/categories/sql/</link>
+    <description>Recent content in Sql on lwolfs blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 17 Jun 2014 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://blog.lwolf.org/categories/sql/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Getting epoch date for highcharts from sqlalchemy</title>
+      <link>http://blog.lwolf.org/post/2014-06-17-getting-epoch-date-for-highcharts-from-sqlalchemy/</link>
+      <pubDate>Tue, 17 Jun 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/2014-06-17-getting-epoch-date-for-highcharts-from-sqlalchemy/</guid>
+      <description>Short sqlalchemy query to get highcharts ready data from database from datetime field.
+select count(1), extract(epoch from date_trunc(&#39;hour&#39;, created_at)) from bid group by extract(epoch from date_trunc(&#39;hour&#39;, created_at)); db.session .query( extract(&#39;epoch&#39;, func.DATE(Bid.created_at)).label(&#39;dt&#39;), func.count() ) .filter(Bid.ownership == o) .filter(Bid.created_at &amp;gt; days_to_count ) .group_by(&#39;dt&#39;) .order_by(&#39;dt&#39;) )  </description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,1255 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        
+            
+                <title>Migrate infrastructure to K8s. Part 2. Basic services.</title>
+            
+        
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content="Hugo 0.25.1" />
+        
+
+
+        
+            <meta name="author" content="Sergey Nuzhdin">
+        
+        
+            <meta name="description" content="Deploying DNS and dashboards to Kubernetes cluster">
+        
+
+        
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="Migrate infrastructure to K8s. Part 2. Basic services."/>
+<meta name="twitter:title" content="Migrate infrastructure to K8s. Part 2. Basic services."/>
+<meta name="twitter:description" content="Deploying DNS and dashboards to Kubernetes cluster"/>
+
+
+        <meta property="og:title" content="Migrate infrastructure to K8s. Part 2. Basic services." />
+<meta property="og:description" content="Deploying DNS and dashboards to Kubernetes cluster" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://blog.lwolf.org/post/migrate-infrastructure-to-kubernetes-part2-basic-services/" />
+
+
+
+<meta property="article:published_time" content="2016-06-20T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2016-06-20T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+        
+<meta itemprop="name" content="Migrate infrastructure to K8s. Part 2. Basic services.">
+<meta itemprop="description" content="Deploying DNS and dashboards to Kubernetes cluster">
+
+
+<meta itemprop="dateModified" content="2016-06-20T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="846">
+
+
+
+<meta itemprop="keywords" content="" />
+
+        
+
+        
+
+        
+        
+            
+        
+
+        
+        
+            <link rel="stylesheet" href="../../css/google-font.css" />
+            <link rel="stylesheet" href="../../css/font-awesome.min.css" />
+            <link rel="stylesheet" href="../../css/main.css" />
+            <link rel="stylesheet" href="../../css/add-on.css" />
+            <link rel="stylesheet" href="../../css/monokai-sublime.css">
+        
+
+        
+
+        
+        
+        
+            
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47060494-2', 'auto');
+ga('send', 'pageview');
+</script>
+
+        
+    </head>
+    <body>
+
+        
+        <div id="wrapper">
+
+    
+    
+<header id="header">
+    
+        <h2><a href="../../">lwolfs blog</i></a></h2>
+    
+
+    <nav class="links">
+        <ul>
+            
+                <li>
+                    <a href="../../post">
+                        
+                            <i class="fa fa-newspaper-o">&nbsp;</i>Posts
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../categories">
+                        Categories
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="../../about">
+                        About
+                    </a>
+                </li>
+            
+                <li>
+                    <a href="http://eepurl.com/cdUha1">
+                        Subscribe
+                    </a>
+                </li>
+            
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            
+            <li id="share-nav" class="share-menu" style="display:none;">
+                <a class="fa-share-alt" href="#share-menu">Share</a>
+            </li>
+            
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="//google.com/search">
+                    <input type="text" name="q" placeholder="Search" />
+                    <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+<section id="menu">
+
+    
+        <section>
+            <form class="search" method="get" action="//google.com/search">
+                <input type="text" name="q" placeholder="Search" />
+                <input type="hidden" name="q" value="site:http://blog.lwolf.org">
+            </form>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                
+                    <li>
+                        <a href="../../post">
+                            <h3>
+                                
+                                    <i class="fa fa-newspaper-o">&nbsp;</i>
+                                
+                                Posts
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../categories">
+                            <h3>
+                                
+                                Categories
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="../../about">
+                            <h3>
+                                
+                                About
+                            </h3>
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="http://eepurl.com/cdUha1">
+                            <h3>
+                                
+                                Subscribe
+                            </h3>
+                        </a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        <section>
+            <ul class="links">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/"><p>Going open-source in monitoring, part II: Creating the first dashboard in Grafana</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/"><p>Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/"><p>Going open-source in monitoring, part 0: Intro</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/"><p>How to recover data from broken GlusterFS cluster</p></a>
+                    </li>
+                
+                    <li>
+                        <a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/"><p>How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</p></a>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+        
+</section>
+
+    <section id="share-menu">
+    <section id="social-share-nav">
+        <ul class="links">
+            <header>
+                <h3>Share this post <i class="fa fa-smile-o"></i></h3>
+            </header>
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f&text=Migrate%20infrastructure%20to%20K8s.%20Part%202.%20Basic%20services.&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f&title=Migrate%20infrastructure%20to%20K8s.%20Part%202.%20Basic%20services." target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f&title=Migrate%20infrastructure%20to%20K8s.%20Part%202.%20Basic%20services." target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f&title=Migrate%20infrastructure%20to%20K8s.%20Part%202.%20Basic%20services." target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+</section>
+
+    
+    <div id="main">
+        
+        
+        <article class="post">
+    <header>
+    <div class="title">
+        
+            <h1><a href="http://blog.lwolf.org/post/migrate-infrastructure-to-kubernetes-part2-basic-services/">Migrate infrastructure to K8s. Part 2. Basic services.</a></h1>
+            
+        
+        
+            <p>Deploying DNS and dashboards to Kubernetes cluster</p>
+        
+    </div>
+    <div class="meta">
+        
+            
+        
+
+        <time class="published"
+            datetime='2016-06-20'>
+            June 20, 2016</time>
+        <span class="author">Sergey Nuzhdin</span>
+        
+            <p>4 minute read</p>
+        
+        
+    </div>
+</header>
+
+
+    <section id="social-share">
+        <ul class="icons">
+            
+
+
+<li><a href="//twitter.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f&text=Migrate%20infrastructure%20to%20K8s.%20Part%202.%20Basic%20services.&via=" target="_blank" class="share-btn twitter">
+    <i class="fa fa-twitter"></i>
+    <p>Twitter</p>
+</a></li>
+
+
+<li><a href="//plus.google.com/share?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f" target="_blank" class="share-btn google-plus">
+    <i class="fa fa-google-plus"></i>
+    <p>Google+</p>
+</a></li>
+
+
+<li><a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f" target="_blank" class="share-btn facebook">
+    <i class="fa fa-facebook"></i>
+    <p>Facebook</p>
+</a></li>
+
+
+<li><a href="//reddit.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f&title=Migrate%20infrastructure%20to%20K8s.%20Part%202.%20Basic%20services." target="_blank" class="share-btn reddit">
+    <i class="fa fa-reddit-alien"></i>
+    <p>Reddit</p>
+</a></li>
+
+
+<li><a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f&title=Migrate%20infrastructure%20to%20K8s.%20Part%202.%20Basic%20services." target="_blank" class="share-btn linkedin">
+    <i class="fa fa-linkedin"></i>
+    <p>LinkedIn</p>
+</a></li>
+
+
+<li><a href="//www.stumbleupon.com/submit?url=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f&title=Migrate%20infrastructure%20to%20K8s.%20Part%202.%20Basic%20services." target="_blank" class="share-btn stumbleupon">
+    <i class="fa fa-stumbleupon"></i>
+    <p>StumbleUpon</p>
+</a></li>
+
+
+<li><a href="mailto:?subject=Check out this post by Sergey%20Nuzhdin&body=http%3a%2f%2fblog.lwolf.org%2fpost%2fmigrate-infrastructure-to-kubernetes-part2-basic-services%2f" target="_blank" class="share-btn email">
+    <i class="fa fa-envelope"></i>
+    <p>Email</p>
+</a></li>
+
+        </ul>
+    </section>
+    
+    
+
+    
+        
+        
+
+
+
+
+    
+    
+        
+    
+
+
+        
+
+        <a href="http://blog.lwolf.org/post/migrate-infrastructure-to-kubernetes-part2-basic-services/" class="image featured">
+            <img src="../../img/2016/06/kubedash.png" alt="" />
+        </a>
+    
+
+
+    <div id="content">
+        
+
+<p>In previous <a href="../../post/migrate-infrastructure-to-kubernetes-building-baremetal-cluster/">post</a>
+I finished description of installation of kubernetes cluster on bare-metal hardware.
+At this point we should be able to communicate with it using <code>kubectl</code></p>
+
+<p>In this post I will go through installation of basic services to use and monitor cluster.
+For example DNS, heapster and different dashboards.
+<!-- more --></p>
+
+<h1 id="deploying-addon-services">Deploying addon services</h1>
+
+<p>Kubernetes comes with several very useful addons, available on its github,
+either in <a href="https://github.com/kubernetes/kubernetes">kubernetes</a> or in <a href="https://github.com/kubernetes/contrib">contrib</a>.
+But all these addons still needs to be installed.</p>
+
+<p>Before we begin with this, we need to do one preparation step - create system namespace.
+By default, Kubernetes has only one <a href="http://kubernetes.io/docs/user-guide/namespaces/">namespace</a>, called <code>default</code>.
+But most of the addons available on the Internet requires you to have a separate namespace for system needs.
+It should be called <code>kube-system</code>.</p>
+
+<h2 id="creating-system-namespace">Creating system namespace</h2>
+
+<p>As far as I heard Kubernetes is going to create it automatically from version 1.3.
+Its not released yet. So, first, let&rsquo;s check namespaces we have in our cluster.
+Getting namespaces is as simple as getting any other type of objects inside Kubernetes:</p>
+
+<pre><code class="language-bash">$ kubectl get namespaces
+NAME          STATUS    AGE
+default       Active    53d
+</code></pre>
+
+<p>If <code>kube-system</code> is not among them we need to create it.
+To do it we need to create simple yaml (or json) file and send it to Kubernetes.
+Let&rsquo;s create file <code>kube-system.yaml</code> with the following content:</p>
+
+<pre><code class="language-yaml"># kube-system.yaml
+
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: kube-system
+
+</code></pre>
+
+<p>It&rsquo;s simple and self-explanatory: create a new entity of type Namespace with the name <code>kube-system</code>.
+Now we need to deploy it to the cluster:</p>
+
+<pre><code>kubectl create -f kube-system.yaml
+</code></pre>
+
+<p>That&rsquo;s it. Running <code>kubectl get namespaces</code> after this, should return two namespaces.</p>
+
+<h2 id="deploying-dns-service">Deploying DNS service</h2>
+
+<p>This one is also part of the standard addons available in <a href="https://github.com/kubernetes/kubernetes">Kubernetes repository</a>.
+To deploy it we need to know IP address of DNS and the name of the cluster we used during minions creating.
+If we&rsquo;re using default IP address for DNS server (10.100.0.10) and
+default cluster name (cluster.local) we can just deploy it as is.
+Otherwise, we need to change <code>skydns-rc.yaml</code> to match our settings.</p>
+
+<pre><code># kubernetes/cluster/addons
+
+kubectl --namespace=kube-system create -f skydns-rc.yaml
+kubectl --namespace=kube-system create -f skydns-svc.yaml
+</code></pre>
+
+<p>Lets test that DNS is working. We can do this by runnning <code>nslookup</code> from some pod.
+First, we need to have a pod with nslookup available.
+Create the file called <code>busybox.yaml</code> and deploy it with <code>kubectl create -f busybox.yaml</code>.</p>
+
+<pre><code class="language-busybox.yaml">
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox
+  namespace: default
+spec:
+  containers:
+  - image: busybox
+    command:
+      - sleep
+      - &quot;3600&quot;
+    imagePullPolicy: IfNotPresent
+    name: busybox
+  restartPolicy: Always
+</code></pre>
+
+<p>After this, we can test that DNS works</p>
+
+<pre><code>&gt; $ kubectl exec busybox -- nslookup kubernetes.default
+Server:    10.100.0.10
+Address 1: 10.100.0.10
+
+Name:      kubernetes.default
+Address 1: 10.100.0.1
+
+</code></pre>
+
+<h3 id="deploy-kubernetes-dashboards">Deploy Kubernetes dashboards</h3>
+
+<p>Now we want to have nice dashboards to monitor our cluster state and may be, even deploy new services from the web.
+For this, Kubernetes used to have two dashboards. But now it looks like that they replaced old one in addons.
+I have both installed, but the old one is kinda useless. So let&rsquo;s take a look only at the new one, which is now the default.
+Deploy scripts could be found in k8s <code>cluster/addons</code> and also in dashboards own <a href="https://github.com/kubernetes/dashboard">repository</a>.</p>
+
+<p>Lets deploy it:</p>
+
+<pre><code class="language-bash">
+kubectl create -f https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
+</code></pre>
+
+<p>To access it we need to run <code>kubectl cluster-info</code> to find out URLs.</p>
+
+<pre><code class="language-bash">&gt; $ kubectl cluster-info
+Kubernetes master is running at https://10.10.30.11:443
+KubeDNS is running at https://10.10.30.11:443/api/v1/proxy/namespaces/kube-system/services/kube-dns
+kubernetes-dashboard is running at https://10.10.30.11:443/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard
+...
+</code></pre>
+
+
+<figure >
+    
+        <img src="../../img/2016/06/kube-dashboard2.png" alt="Kubernetes dashboard" />
+    
+    
+</figure>
+
+
+<h3 id="deploying-heapster">Deploying heapster</h3>
+
+<p><a href="https://github.com/kubernetes/heapster">Heapster</a> is one of the systems used in Kubernetes to collect metrics.</p>
+
+<pre><code class="language-bash">git clone https://github.com/kubernetes/heapster
+cd heapster
+kubectl create -f deploy/kube-config/influxdb
+</code></pre>
+
+<p>Heapster uses grafana dashboard to show its metrics which will be installed as part of it.</p>
+
+<p>But it also has another dashboard - <a href="https://github.com/kubernetes/kubedash">kubedash</a>,
+ which is pretty simple and nice for a quick overview of resource usage.</p>
+
+<pre><code>git clone https://github.com/kubernetes/kubedash
+cd kubedash
+kubectl create -f deploy/bundle.yaml
+</code></pre>
+
+<p>After deploy, kubedash will be available on <code>https://&lt;kubernetes-master&gt;/api/v1/proxy/namespaces/kube-system/services/kubedash/</code>.</p>
+
+
+<figure >
+    
+        <img src="../../img/2016/06/kubedash.png" alt="Kubedash dashboard" />
+    
+    
+</figure>
+
+
+<h3 id="deploy-newrelic-daemon">Deploy newrelic daemon</h3>
+
+<p>I&rsquo;m using NewRelic service all the time to monitor my applications and servers.
+So I&rsquo;m going to run it as a daemon on all minions.
+I&rsquo;m running it also on masters, and it looks like I forgot to mention it in my previous post.
+So, here is my SystemD unit to run NewRelic container.</p>
+
+<pre><code class="language-yaml">    - name: newrelic-nrsysmond.service
+      command: start
+      content: |
+       [Unit]
+       Description=Newrelic monitoring
+       After=systemd-networkd.service
+       [Service]
+       Restart=always
+        TimeoutStartSec=1200s
+        ExecStartPre=-/usr/bin/docker rm nrsysmond
+        ExecStart=/usr/bin/docker run \
+          --net=host \
+          --pid=host \
+          --privileged=true \
+          --name nrsysmond \
+          -v /sys:/sys \
+          -v /sys:/sys \
+          -v /dev:/dev \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v /var/log:/var/log:rw \
+          -e NRSYSMOND_license_key=&lt;API-KEY&gt; \
+          -e NRSYSMOND_logfile=/var/log/nrsysmond.log \
+          newrelic/nrsysmond:latest
+        ExecStop=-/usr/bin/docker stop nrsysmond
+        ExecStopPost=-/usr/bin/docker rm nrsysmond
+</code></pre>
+
+<p>NewRelic configuration I&rsquo;m going to deploy, with great readme btw,
+could be found in <a href="https://github.com/kubernetes/kubernetes/tree/master/examples/newrelic">kubernetes/examples/newrelic</a>.</p>
+
+<p>Shortly, to run NewRelic in the pod we need to create a config file and then create a base64 hash of it, after this we can deploy it.
+To use <code>config-to-secret.sh</code> script from repository we need a Linux machine.</p>
+
+<pre><code>kubectl create -f newrelic-config.yaml
+kubectl create -f newrelic-daemonset.yaml --validate=false
+</code></pre>
+
+<p>That&rsquo;s it for now. At this point, we have fully operational Kubernetes cluster with DNS and dashboards showing all our deployed containers and resource usage.</p>
+
+    </div>
+
+    <div>
+        <hr/>
+        <b>Like this post?</b> Want more? <a href="http://eepurl.com/cdUha1"><b><u>Subscribe</u></b></a> to get updates delivered straight to your inbox.
+        <hr/>
+    </div>
+    <footer>
+        <ul class="stats">
+    
+        
+
+        
+        
+            <li>
+                
+                
+                    
+
+                    
+                    
+
+                    
+
+                    
+                        Categories
+                    
+                
+            </li>
+        
+    
+
+    
+    
+        <li><a href='../../categories/kubernetes'>kubernetes</a></li>
+    
+        <li><a href='../../categories/docker'>docker</a></li>
+    
+        <li><a href='../../categories/infrastructure'>infrastructure</a></li>
+    
+        <li><a href='../../categories/k8s'>k8s</a></li>
+    
+</ul>
+
+    </footer>
+</article>
+<ul class="actions pagination">
+    
+        <li><a href="http://blog.lwolf.org/post/debugging-letsencrypt-renewal-script-after-backup/"
+                class="button big previous">Debugging lets encrypt renewal script after backup</a></li>
+    
+
+    
+        <li><a href="http://blog.lwolf.org/post/bootstrapping-coreos-cluster-with-k8s-in-20-min-using-bootkube/"
+                class="button big next">Bootstrapping CoreOS cluster with Kubernetes in 20 minutes using coreos-baremental and bootkube</a></li>
+    
+</ul>
+
+
+
+    
+        <article class="post">
+            <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "blog-lwolf" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </article>
+    
+
+
+    </div>
+    
+<section id="sidebar">
+
+    
+        <section id="intro">
+            
+            
+                
+                    <a href="../../" class="logo"><img src="../../img/author.jpg" alt="Hugo Future Imperfect" /></a>
+                
+            
+            
+                <header>
+                    <h2>LWOLFS BLOG</h2>
+                    <p>Blog about dev and ops stuff, mostly about python, docker, kubernetes, CI/CD, etc</p>
+                </header>
+            
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+        </section>
+
+    
+        <section id="recent-posts">
+            <ul class="posts">
+                <header>
+                    <h3>Recent Posts</h3>
+                </header>
+                
+                    
+                
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-ii-creating-the-first-dashboard-in-grafana/">Going open-source in monitoring, part II: Creating the first dashboard in Grafana</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-06-19'>
+                                    June 19, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-i-deploying-prometheus-and-grafana-to-kubernetes/">Going open-source in monitoring, part I: Deploying Prometheus and Grafana to Kubernetes</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-29'>
+                                    May 29, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/going-open-source-in-monitoring-part-0-intro/">Going open-source in monitoring, part 0: Intro</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-05-12'>
+                                    May 12, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-recover-data-from-broken-glusterfs-cluster/">How to recover data from broken GlusterFS cluster</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-31'>
+                                    March 31, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <h3><a href="http://blog.lwolf.org/post/how-to-create-ci-cd-pipeline-with-autodeploy-k8s-gitlab-helm/">How to create CI/CD pipeline with autodeploy to Kubernetes using GitLab and Helm</a></h3>
+                                
+                                    
+                                
+                                <time class="published" datetime=
+                                    '2017-03-30'>
+                                    March 30, 2017</time>
+                            </header>
+                        </article>
+                    </li>
+                
+
+                
+                    <li>
+                        <ul class="actions">
+                            <li><a href=
+                            
+                                /post/
+                            
+                            class="button">View more posts</a></li>
+                        </ul>
+                    </li>
+                
+            </ul>
+        </section>
+
+    
+    
+    
+    
+        <section id="categories">
+            <ul class="posts">
+                <header>
+                    <h3><a href="../../categories/">Categories</a></h3>
+                </header>
+
+                
+                    
+                
+
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/docker/">docker</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/infrastructure/">infrastructure</a>
+                                <span style="float:right;">19</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/kubernetes/">kubernetes</a>
+                                <span style="float:right;">17</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/k8s/">k8s</a>
+                                <span style="float:right;">13</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/devops/">devops</a>
+                                <span style="float:right;">10</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ci/cd/">ci/cd</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/gitlab/">gitlab</a>
+                                <span style="float:right;">7</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coding/">coding</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/monitoring/">monitoring</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/prometheus/">prometheus</a>
+                                <span style="float:right;">3</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/coreos/">coreos</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/glusterfs/">glusterfs</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/letsencrypt/">letsencrypt</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">python</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/ssl/">ssl</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/storage/">storage</a>
+                                <span style="float:right;">2</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/faas/">FaaS</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/python/">Python</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/architecture/">architecture</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/golang/">golang</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/high-availability/">high-availability</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/nginx/">nginx</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/postgresql/">postgresql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/serverless/">serverless</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+                    <li>
+                        <article>
+                            <header>
+                                <a href="../../categories/sql/">sql</a>
+                                <span style="float:right;">1</span>
+                            </header>
+                        </article>
+                    </li>
+                
+            </ul>
+        </section>
+    
+
+    
+        
+        <section class="blurb">
+            <h2>About</h2>
+            <p>Some about me text...</p>
+
+            <ul class="actions">
+                <li><a href="../../about/" class="button">Learn More</a></li>
+            </ul>
+        </section>
+        
+
+    
+        <section id="footer">
+            <ul class="icons">
+                
+                
+                    
+<li><a href="//github.com/lwolf" target="_blank" title="GitHub" class="fa fa-github"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//linkedin.com/in/sergey-nuzhdin-9925b31a" target="_blank" title="LinkedIn" class="fa fa-linkedin"></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="//facebook.com/snuzhdin" target="_blank" title="Facebook" class="fa fa-facebook"></a></li>
+
+
+
+
+
+<li><a href="mailto:ipaq.lw@gmail.com" title="Email" class="fa fa-envelope"></a></li>
+
+
+                
+            </ul>
+
+            <p class="copyright">&copy; lwolfs blog. Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a>. Ported by <a href="//github.com/jpescador" target="_blank">Julio Pescador</a>. Powered by <a href="//gohugo.io" target="_blank">Hugo</a></p>
+        </section>
+
+</section>
+
+            </div>
+        <a id="back-to-top" href="#" class="fa fa-arrow-up fa-border fa-2x"></a>
+        
+
+        
+        
+            
+        
+
+        
+        
+            <script src="../../js/jquery.min.js"></script>
+            <script src="../../js/skel.min.js"></script>
+            <script src="../../js/util.js"></script>
+            <script src="../../js/main.js"></script>
+            <script src="../../js/backToTop.js"></script>
+            <script src="../../js/highlight.pack.js"></script>
+        
+
+        
+
+            
+            <script>hljs.initHighlightingOnLoad();</script>
+            
+
+            
+            <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-538070ba29aaa8d5"></script>
+
+    </body>
+</html>
+

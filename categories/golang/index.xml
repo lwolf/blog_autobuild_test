@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Golang on lwolfs blog</title>
+    <link>http://blog.lwolf.org/categories/golang/</link>
+    <description>Recent content in Golang on lwolfs blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 06 Feb 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://blog.lwolf.org/categories/golang/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>How to build tiny Golang docker images with Gitlab-CI</title>
+      <link>http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/</link>
+      <pubDate>Mon, 06 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.lwolf.org/post/how-to-build-tiny-golang-docker-images-with-gitlab-ci/</guid>
+      <description>This post will show how to build Golang docker containers using Gitlab-CI. It&amp;rsquo;s the sequel of my previous posts about building and optimizing docker containers.
+I’ve written a small microservice in Golang, and I needed to configure my GitLab to auto build it. It uses Glide as a package manager for Go.
+My directory tree for this project looks like this:
+ &amp;gt; $ tree ├── Dockerfile ├── build_base.sh ├── glide.</description>
+    </item>
+    
+  </channel>
+</rss>
