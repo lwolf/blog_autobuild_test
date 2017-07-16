@@ -8,6 +8,7 @@ install:
 script:
   - rm -rf public || exit 0
   - bin/hugo-linux64 --theme=hugo-future-imperfect
+  - echo "User-agent: *\nDisallow:\n\nSitemap: http://blog.lwolf.org/sitemap.xml " > public/robots.txt
 
 deploy:
   provider: pages
